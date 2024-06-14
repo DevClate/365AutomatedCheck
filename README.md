@@ -2,12 +2,12 @@
 
 365 Automated Checking tool to find non company standards
 
-Features
+Key Features
 
-- Find non compliant fields in Microsoft 365
-- Fix any non compliant fields with only compliant values
-- Check last logins 30, 60, 90 days
-- Easy to view HTML report with results
+- Find and fix non compliant fields in Microsoft 365
+- Check last logins 14, 30, 60, 90 days
+- Easy to view HTML reports
+- Add in your own Pester Tests
 
 The purpose of this module is two-fold, one, it is to make sure all users have company compliant values in their Microsoft 365 tenant. Two, find out if anyone within the company is not following company standards or even worse if a bad actor creates an account for bad intentions.
 
