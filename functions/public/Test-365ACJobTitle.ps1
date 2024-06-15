@@ -14,6 +14,9 @@
 .PARAMETER HtmlFilePath
     Specifies the path to export the results to an HTML file. If this parameter is specified, the function will use the Export-365ACResultToHtml function to export the results.
 
+.PARAMETER TestedProperty
+    Specifies the property that is being tested. Default is 'Has Job Title'.
+
 .EXAMPLE
     Test-365ACJobTitle -Users (Get-MgUser -All) -ExcelFilePath "C:\Results.xlsx"
     Tests all users and exports the results to an Excel file located at "C:\Results.xlsx".
