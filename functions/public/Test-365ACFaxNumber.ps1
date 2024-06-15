@@ -14,6 +14,9 @@
 .PARAMETER HtmlFilePath
     Specifies the path to export the results as an HTML file. If this parameter is provided, the Export-365ACResultToHtml function is called to export the results.
 
+.PARAMETER TestedProperty
+    Specifies the property that is being tested. Default is 'Has Fax Number'.
+
 .EXAMPLE
     Test-365ACFaxNumber -Users $users -ExcelFilePath "C:\Results.xlsx"
     Tests the specified users for fax numbers and exports the results to an Excel file.
@@ -38,8 +41,11 @@ Function Test-365ACFaxNumber {
         [array]$Users = (get-mguser -all -Property DisplayName, FaxNumber | Select-Object displayname, FaxNumber),
         [ValidatePattern('\.xlsx$')]
         [string]$ExcelFilePath,
+
         [ValidatePattern('\.html$')]
-        [string]$HtmlFilePath
+        [string]$HtmlFilePath,
+
+        [string]$TestedProperty = 'Has Fax Number'
     )
     BEGIN {
         if ($ExcelFilePath -and !(Get-Command Export-Excel -ErrorAction SilentlyContinue)) {
@@ -63,10 +69,10 @@ Function Test-365ACFaxNumber {
         $passedTests = ($results | Where-Object { $_.'Has Fax Number' }).Count
         $failedTests = $totalTests - $passedTests
         if ($ExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests
+            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
         elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty 'Has Fax Number'
+            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
         else {
             Write-Output $results
