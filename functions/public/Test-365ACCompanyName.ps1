@@ -15,6 +15,8 @@
 .EXAMPLE
     Test-365ACCompanyName -Users $users -HtmlFilePath "C:\Results.html"
     This example tests the company names of the users in the $users array and exports the results to an HTML file located at "C:\Results.html".
+.NOTES
+    - This function requires the ImportExcel module to export results to Excel. If the module is not installed, an error will be displayed.
 #>
 Function Test-365ACCompanyName {
     [CmdletBinding()]
