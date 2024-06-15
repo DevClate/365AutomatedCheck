@@ -36,9 +36,9 @@
     Specifies the path to the Excel file used for additional reporting. This parameter is optional.
 
 .EXAMPLE
-    Invoke-365AutomatedCheck -PesterConfiguration $config -Verbosity 'Detailed' -XmlPath 'C:\Reports\365ACReport.xml' -OutputHtmlPath 'C:\Reports\365ACReport.html' -Tag 'Critical', 'Security'
+    Invoke-365AutomatedCheck -PesterConfiguration $config -Verbosity 'Detailed' -XmlPath 'C:\Reports\365ACReport.xml' -OutputHtmlPath 'C:\Reports\365ACReport.html' -Tag 'Basic', 'HR'
 
-    This example runs the 365AutomatedCheck function with a detailed verbosity level, specifying the XML report path and the output HTML path. It also includes tests with the 'Critical' and 'Security' tags.
+    This example runs the 365AutomatedCheck function with a detailed verbosity level, specifying the XML report path and the output HTML path. It also includes tests with the 'Basic' and 'HR' tags.
 
 .NOTES
     This function requires the Pester and ImportExcel modules to be installed.
