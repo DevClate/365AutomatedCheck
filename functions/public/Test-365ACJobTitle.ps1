@@ -34,10 +34,14 @@ function Test-365ACJobTitle {
     param (
         [Parameter(ValueFromPipeline=$true)]
         [array]$Users = (Get-MgUser -All),
+        
         [ValidatePattern('\.xlsx$')]
         [string]$ExcelFilePath,
+        
         [ValidatePattern('\.html$')]
-        [string]$HtmlFilePath
+        [string]$HtmlFilePath,
+
+        [string]$TestedProperty = 'Has Job Title'
     )
     BEGIN {
         if ($ExcelFilePath -and !(Get-Command Export-Excel -ErrorAction SilentlyContinue)) {
@@ -61,9 +65,9 @@ function Test-365ACJobTitle {
         $passedTests = ($results | Where-Object { $_.'Has Job Title' }).Count
         $failedTests = $totalTests - $passedTests
         if ($ExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests
+            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         } elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty 'Has Job Title'
+            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         } else {
             Write-Output $results
         }
