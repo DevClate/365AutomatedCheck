@@ -14,6 +14,9 @@
 .PARAMETER HtmlFilePath
     Specifies the path to an HTML file where the results will be exported. If this parameter is provided, the function requires the Export-365ACResultToHtml function to be available.
 
+.PARAMETER TestedProperty
+    Specifies the property that is being tested. Default is 'Has MobilePhone'.
+
 .EXAMPLE
     Test-365ACMobilePhone -Users (Get-MgUser -All) -ExcelFilePath "C:\Results.xlsx"
     Retrieves all users in Microsoft 365 and exports the results to an Excel file located at "C:\Results.xlsx".
@@ -43,7 +46,9 @@ function Test-365ACMobilePhone {
         [string]$ExcelFilePath,
 
         [ValidatePattern('\.html$')]
-        [string]$HtmlFilePath
+        [string]$HtmlFilePath,
+
+        [string]$TestedProperty = 'Has MobilePhone'
     )
 
     BEGIN {
@@ -71,10 +76,10 @@ function Test-365ACMobilePhone {
         $failedTests = $totalTests - $passedTests
 
         if ($ExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests
+            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
         elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty 'Has Mobile Phone'
+            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
         else {
             Write-Output $results
