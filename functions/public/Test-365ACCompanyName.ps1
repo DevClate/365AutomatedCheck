@@ -12,6 +12,9 @@
 .PARAMETER HtmlFilePath
     Specifies the file path to export the results to an HTML file.
 
+.PARAMETER TestedProperty
+    Specifies the property that is being tested. Default is 'Has Company Name'.
+
 .EXAMPLE
     Test-365ACCompanyName -Users $users -ExcelFilePath "C:\Results.xlsx"
     This example tests the company names of the users in the $users array and exports the results to an Excel file located at "C:\Results.xlsx".
@@ -33,10 +36,14 @@ Function Test-365ACCompanyName {
     (
         [Parameter(ValueFromPipeline = $true)]
         [array]$Users = (get-mguser -all -Property DisplayName, CompanyName | Select-Object displayname, CompanyName),
+        
         [ValidatePattern('\.xlsx$')]
         [string]$ExcelFilePath,
+        
         [ValidatePattern('\.html$')]
-        [string]$HtmlFilePath
+        [string]$HtmlFilePath,
+
+        [string]$TestedProperty = 'Has Company Name'
     )
     BEGIN {
         if ($ExcelFilePath -and !(Get-Command Export-Excel -ErrorAction SilentlyContinue)) {
@@ -60,10 +67,10 @@ Function Test-365ACCompanyName {
         $passedTests = ($results | Where-Object { $_.'Has Company Name' }).Count
         $failedTests = $totalTests - $passedTests
         if ($ExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests
+            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
         elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty 'Has Company Name'
+            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
         else {
             Write-Output $results
