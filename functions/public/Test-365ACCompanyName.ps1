@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    This function tests whether users have a company name associated with their account.
+    This function tests whether users have a company name associated with their account and exports the results to Excel, HTML, or the console.
 .DESCRIPTION
     The Test-365ACCompanyName function checks whether users have a company name associated with their account. It takes an array of users, an optional Excel file path as input. It then iterates through each user, determines if they have a company name, and generates a result object for each user. The function returns the results as an array of objects or exports them to an Excel file or an HTML file.
 .PARAMETER Users

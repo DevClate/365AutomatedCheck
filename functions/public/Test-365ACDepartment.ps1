@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    This function tests the department property of users and generates test results.
+    This function tests the department property of users and exports the results to Excel, HTML, or the console.
 
 .DESCRIPTION
     The Test-365ACDepartment function tests the department property of users and generates test results. It takes an array of users as input and checks if each user has a department specified. The function then generates test results indicating whether each user has a department or not.
