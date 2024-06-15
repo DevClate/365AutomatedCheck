@@ -4,9 +4,11 @@ function Export-365ACResultToExcel {
         [string]$ExcelFilePath,
         [int]$TotalTests,
         [int]$PassedTests,
-        [int]$FailedTests
+        [int]$FailedTests,
+        [string]$TestedProperty
     )
 
+    # Exporting the results to an Excel file
     $results | Export-Excel -Path $ExcelFilePath -WorkSheetname 'Results' -AutoSize -FreezePane 8,1 -NoHeader -StartRow 8
 
     $excelPackage = Open-ExcelPackage -Path $ExcelFilePath
@@ -54,7 +56,7 @@ function Export-365ACResultToExcel {
 
     # Formatting the Results Sheet headers
     $resultSheet.Cells["A7"].Value = "User Display Name"
-    $resultSheet.Cells["B7"].Value = "Has Mobile Phone"
+    $resultSheet.Cells["B7"].Value = "$TestedProperty"
     $resultSheet.Cells["A7:B7"].Style.Font.Bold = $true
     $resultSheet.Cells["A7:B7"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
     $resultSheet.Cells["A7:B7"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Gray)
@@ -64,10 +66,10 @@ function Export-365ACResultToExcel {
     $startRow = 8
     for ($i = 0; $i -lt $Results.Count; $i++) {
         $row = $i + $startRow
-        $hasMobilePhone = [System.Convert]::ToBoolean($Results[$i].'Has Mobile Phone')
+        $hasMobilePhone = [System.Convert]::ToBoolean($Results[$i]."$TestedProperty")
         
         $resultSheet.Cells["A$row"].Value = $Results[$i].'User Display Name'
-        $resultSheet.Cells["B$row"].Value = $Results[$i].'Has Mobile Phone'
+        $resultSheet.Cells["B$row"].Value = $Results[$i]."$TestedProperty"
 
         if ($hasMobilePhone) {
             $resultSheet.Cells["A$row:B$row"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
