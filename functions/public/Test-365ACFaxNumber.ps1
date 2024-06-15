@@ -39,6 +39,7 @@ Function Test-365ACFaxNumber {
     (
         [Parameter(ValueFromPipeline = $true)]
         [array]$Users = (get-mguser -all -Property DisplayName, FaxNumber | Select-Object displayname, FaxNumber),
+        
         [ValidatePattern('\.xlsx$')]
         [string]$ExcelFilePath,
 

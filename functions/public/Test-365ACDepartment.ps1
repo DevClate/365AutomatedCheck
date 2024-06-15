@@ -14,6 +14,9 @@
 .PARAMETER HtmlFilePath
     Specifies the path to the HTML file where the test results will be exported. If this parameter is specified, the function will use the Export-365ACResultToHtml function to export the results to an HTML file.
 
+.PARAMETER TestedProperty
+    Specifies the property that is being tested. Default is 'Has Department'.
+
 .EXAMPLE
     Test-365ACDepartment -Users $users -ExcelFilePath "C:\TestResults.xlsx"
     Tests the department property of the specified users and exports the test results to an Excel file.
@@ -35,10 +38,14 @@ Function Test-365ACDepartment {
     (
         [Parameter(ValueFromPipeline = $true)]
         [array]$Users = (get-mguser -all -Property DisplayName, Department | Select-Object displayname, Department),
+        
         [ValidatePattern('\.xlsx$')]
         [string]$ExcelFilePath,
+        
         [ValidatePattern('\.html$')]
-        [string]$HtmlFilePath
+        [string]$HtmlFilePath,
+
+        [string]$TestedProperty = 'Has Department'
     )
     BEGIN {
         if ($ExcelFilePath -and !(Get-Command Export-Excel -ErrorAction SilentlyContinue)) {
@@ -63,10 +70,10 @@ Function Test-365ACDepartment {
         $passedTests = ($results | Where-Object { $_.'Has Department' }).Count
         $failedTests = $totalTests - $passedTests
         if ($ExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests
+            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
         elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty 'Has Department'
+            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
         else {
             Write-Output $results
