@@ -23,11 +23,11 @@
     Tests the department property of the specified users and exports the test results to an HTML file.
 
 .NOTES
-    This function requires the ImportExcel module to be installed in order to export the results to an Excel file.
+    - This function requires the ImportExcel module to export results to Excel. If the module is not installed, an error will be displayed.
+    - The Export-365ACResultToExcel and Export-365ACResultToHtml functions are assumed to be defined elsewhere in the script.
 
-    The function generates test results indicating whether each user has a department or not. The total number of tests, number of passed tests, and number of failed tests are also calculated and displayed.
-
-    If neither the ExcelFilePath nor the HtmlFilePath parameters are specified, the function will output the test results to the console.
+.LINK
+    https://github.com/DevClate/365AutomatedCheck
 #>
 Function Test-365ACDepartment {
     [CmdletBinding()]
