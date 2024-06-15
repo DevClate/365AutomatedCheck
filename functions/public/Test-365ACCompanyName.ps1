@@ -16,8 +16,7 @@
     Test-365ACCompanyName -Users $users -HtmlFilePath "C:\Results.html"
     This example tests the company names of the users in the $users array and exports the results to an HTML file located at "C:\Results.html".
 #>
-Function Test-365ACCompanyName
-{
+Function Test-365ACCompanyName {
     [CmdletBinding()]
     param
     (
@@ -28,42 +27,34 @@ Function Test-365ACCompanyName
         [ValidatePattern('\.html$')]
         [string]$HtmlFilePath
     )
-    BEGIN
-    {
-        if ($ExcelFilePath -and !(Get-Command Export-Excel -ErrorAction SilentlyContinue))
-        {
+    BEGIN {
+        if ($ExcelFilePath -and !(Get-Command Export-Excel -ErrorAction SilentlyContinue)) {
             Write-Error "Export-Excel cmdlet not found. Please install the ImportExcel module."
             return
         }
         $results = @()
     }
-    PROCESS
-    {
-        foreach ($user in $Users)
-        {
+    PROCESS {
+        foreach ($user in $Users) {
             $hasCompanyName = [bool]($user.CompanyName)
             $result = [PSCustomObject]@{
                 'User Display Name' = $user.DisplayName
-                'Has Company Name' = $hasCompanyName
+                'Has Company Name'  = $hasCompanyName
             }
             $results += $result
         }
     }
-    END
-    {
+    END {
         $totalTests = $results.Count
         $passedTests = ($results | Where-Object { $_.'Has Company Name' }).Count
         $failedTests = $totalTests - $passedTests
-        if ($ExcelFilePath)
-        {
+        if ($ExcelFilePath) {
             Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests
         }
-        elseif ($HtmlFilePath)
-        {
+        elseif ($HtmlFilePath) {
             Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty 'Has Company Name'
         }
-        else
-        {
+        else {
             Write-Output $results
         }
     }
