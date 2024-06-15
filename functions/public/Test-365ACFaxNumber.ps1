@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-   This function tests whether users have a fax number and exports the results to Excel, HTML, or the console.
+    This function tests whether users have a fax number and exports the results to Excel, HTML, or the console.
 
 .DESCRIPTION
     The Test-365ACFaxNumber function tests whether users have a fax number by checking the FaxNumber property of each user. It accepts an array of users as input and outputs the results as a custom object with the user's display name and a boolean value indicating whether they have a fax number.
@@ -27,7 +27,7 @@
     - The Export-365ACResultToExcel and Export-365ACResultToHtml functions are assumed to be defined elsewhere in the script.
 
 .LINK
-    https://github.com/your-repo/365AutomatedCheck
+    https://github.com/DevClate/365AutomatedCheck
 #>
 
 Function Test-365ACFaxNumber {
