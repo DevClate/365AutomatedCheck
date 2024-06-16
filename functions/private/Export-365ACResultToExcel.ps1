@@ -8,8 +8,7 @@ function Export-365ACResultToExcel {
         [string]$TestedProperty
     )
 
-    # Exporting the results to an Excel file
-    $results | Export-Excel -Path $ExcelFilePath -WorkSheetname 'Results' -AutoSize -FreezePane 8,1 -NoHeader -StartRow 8
+    $results | Export-Excel -Path $ExcelFilePath -WorkSheetname 'Results' -AutoSize -FreezePane 8,1 -NoHeader -StartRow 8 -ConditionalText (New-ConditionalText -Text 'Yes' -BackgroundColor Green -ForegroundColor White), (New-ConditionalText -Text 'No' -BackgroundColor Red -ForegroundColor White)
 
     $excelPackage = Open-ExcelPackage -Path $ExcelFilePath
     $resultSheet = $excelPackage.Workbook.Worksheets['Results']
@@ -56,31 +55,33 @@ function Export-365ACResultToExcel {
 
     # Formatting the Results Sheet headers
     $resultSheet.Cells["A7"].Value = "User Display Name"
-    $resultSheet.Cells["B7"].Value = "$TestedProperty"
+    $resultSheet.Cells["B7"].Value = $TestedProperty
     $resultSheet.Cells["A7:B7"].Style.Font.Bold = $true
     $resultSheet.Cells["A7:B7"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
     $resultSheet.Cells["A7:B7"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Gray)
     $resultSheet.Cells["A7:B7"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
 
+
     # Applying conditional formatting to the results
     $startRow = 8
     for ($i = 0; $i -lt $Results.Count; $i++) {
         $row = $i + $startRow
-        $hasMobilePhone = [System.Convert]::ToBoolean($Results[$i]."$TestedProperty")
-        
-        $resultSheet.Cells["A$row"].Value = $Results[$i].'User Display Name'
-        $resultSheet.Cells["B$row"].Value = $Results[$i]."$TestedProperty"
-
-        if ($hasMobilePhone) {
-            $resultSheet.Cells["A$row:B$row"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
-            $resultSheet.Cells["A$row:B$row"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Green)
-            $resultSheet.Cells["A$row:B$row"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
+        if ($Results[$i].$TestedProperty -eq 'TRUE') {
+            $resultSheet.Cells["A$row"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
+            $resultSheet.Cells["A$row"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Green)
+            $resultSheet.Cells["A$row"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
+            $resultSheet.Cells["B$row"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
+            $resultSheet.Cells["B$row"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Green)
+            $resultSheet.Cells["B$row"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
         } else {
-            $resultSheet.Cells["A$row:B$row"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
-            $resultSheet.Cells["A$row:B$row"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Red)
-            $resultSheet.Cells["A$row:B$row"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
+            $resultSheet.Cells["A$row"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
+            $resultSheet.Cells["A$row"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Red)
+            $resultSheet.Cells["A$row"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
+            $resultSheet.Cells["B$row"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
+            $resultSheet.Cells["B$row"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Red)
+            $resultSheet.Cells["B$row"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
         }
     }
-
+    
     Close-ExcelPackage $excelPackage
 }

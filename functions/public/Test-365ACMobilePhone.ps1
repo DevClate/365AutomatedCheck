@@ -40,7 +40,7 @@ function Test-365ACMobilePhone {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline = $true)]
-        [array]$Users = (Get-MgUser -All),
+        [array]$Users = (Get-MgUser -All -Property DisplayName, MobilePhone | Select-Object DisplayName, MobilePhone),
 
         [ValidatePattern('\.xlsx$')]
         [string]$ExcelFilePath,
@@ -48,7 +48,7 @@ function Test-365ACMobilePhone {
         [ValidatePattern('\.html$')]
         [string]$HtmlFilePath,
 
-        [string]$TestedProperty = 'Has MobilePhone'
+        [string]$TestedProperty = 'Has Mobile Phone'
     )
 
     BEGIN {
