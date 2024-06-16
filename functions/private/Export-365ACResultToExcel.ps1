@@ -8,7 +8,7 @@ function Export-365ACResultToExcel {
         [string]$TestedProperty
     )
 
-    $results | Export-Excel -Path $ExcelFilePath -WorkSheetname 'Results' -AutoSize -FreezePane 8,1 -NoHeader -StartRow 8 -ConditionalText (New-ConditionalText -Text 'Yes' -BackgroundColor Green -ForegroundColor White), (New-ConditionalText -Text 'No' -BackgroundColor Red -ForegroundColor White)
+    $results | Export-Excel -Path $ExcelFilePath -WorkSheetname 'Results' -AutoSize -FreezePane 8, 1 -NoHeader -StartRow 8 -ConditionalText (New-ConditionalText -Text 'Yes' -BackgroundColor Green -ForegroundColor White), (New-ConditionalText -Text 'No' -BackgroundColor Red -ForegroundColor White)
 
     $excelPackage = Open-ExcelPackage -Path $ExcelFilePath
     $resultSheet = $excelPackage.Workbook.Worksheets['Results']
@@ -61,7 +61,6 @@ function Export-365ACResultToExcel {
     $resultSheet.Cells["A7:B7"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Gray)
     $resultSheet.Cells["A7:B7"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
 
-
     # Applying conditional formatting to the results
     $startRow = 8
     for ($i = 0; $i -lt $Results.Count; $i++) {
@@ -73,7 +72,8 @@ function Export-365ACResultToExcel {
             $resultSheet.Cells["B$row"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
             $resultSheet.Cells["B$row"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Green)
             $resultSheet.Cells["B$row"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
-        } else {
+        }
+        else {
             $resultSheet.Cells["A$row"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
             $resultSheet.Cells["A$row"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Red)
             $resultSheet.Cells["A$row"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
