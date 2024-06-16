@@ -20,6 +20,6 @@ Example: Check to see if all fields are filled out without using company standar
 Invoke-365AutomatedCheck -ExcludeTag "CompanyStandard"
 
 Notes:
-	- Add your default values to the Excel workbook in Assets 365ValidationParameters.xlsx
-		- or copy workbook to another location and fill in your standards
-	- When validating with Excel it with have an option for NA, that is for right now as I couldn't get it to remove empty options without doing that.
+- Add your default values to the Excel workbook in Assets 365ValidationParameters.xlsx
+ - or copy workbook to another location and fill in your standards
+- When validating with Excel it with have an option for NA, that is for right now as I couldn't get it to remove empty options without doing that.
