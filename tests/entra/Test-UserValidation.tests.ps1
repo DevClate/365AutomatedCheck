@@ -335,7 +335,7 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
             $user = $_
             $validCityName = $excelData | Select-Object -ExpandProperty City -Unique
             try {
-                $user.City | Should -BeIn $validCityName
+                $user.City | Should -BeIn $validCityName -Because "City should be in the list of valid city names"
             }
             catch {
                 if (![string]::IsNullOrEmpty($user.Id)) {
@@ -364,7 +364,7 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
             $user = $_
             $validStates = $excelData | Select-Object -ExpandProperty State -Unique
             try {
-                $user.State | Should -BeIn $validStates
+                $user.State | Should -BeIn $validStates -Because "State should be in the list of valid states"
             }
             catch {
                 if (![string]::IsNullOrEmpty($user.Id)) {
@@ -393,7 +393,7 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
             $user = $_
             $validPostalCode = $excelData | Select-Object -ExpandProperty PostalCode -Unique
             try {
-                $user.PostalCode | Should -BeIn $validPostalCode
+                $user.PostalCode | Should -BeIn $validPostalCode -Because "Postal Code should be in the list of valid postal codes"
             }
             catch {
                 if (![string]::IsNullOrEmpty($user.Id)) {
@@ -422,7 +422,7 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
             $user = $_
             $validCountry = $excelData | Select-Object -ExpandProperty Country -Unique
             try {
-                $user.Country | Should -BeIn $validCountry
+                $user.Country | Should -BeIn $validCountry -Because "Country should be in the list of valid countries"
             }
             catch {
                 if (![string]::IsNullOrEmpty($user.Id)) {
@@ -451,7 +451,7 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
             $user = $_
             $validDepartments = $excelData | Select-Object -ExpandProperty Department -Unique
             try {
-                $user.Department | Should -BeIn $validDepartments
+                $user.Department | Should -BeIn $validDepartments -Because "Department should be in the list of valid departments"
             }
             catch {
                 if (![string]::IsNullOrEmpty($user.Id)) {
@@ -480,7 +480,7 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
             $user = $_
             $validJobTitles = $excelData | Select-Object -ExpandProperty Title -Unique
             try {
-                $user.JobTitle | Should -BeIn $validJobTitles
+                $user.JobTitle | Should -BeIn $validJobTitles -Because "Job Title should be in the list of valid job titles"
             }
             catch {
                 if (![string]::IsNullOrEmpty($user.Id)) {
