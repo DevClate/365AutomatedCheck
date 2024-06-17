@@ -8,7 +8,7 @@ function Export-365ACResultToExcel {
         [string]$TestedProperty
     )
 
-    $results | Export-Excel -Path $ExcelFilePath -WorkSheetname 'Results' -AutoSize -FreezePane 8, 1 -NoHeader -StartRow 8 -ConditionalText (New-ConditionalText -Text 'Yes' -BackgroundColor Green -ForegroundColor White), (New-ConditionalText -Text 'No' -BackgroundColor Red -ForegroundColor White)
+    $results | Export-Excel -Path $ExcelFilePath -WorkSheetname 'Results' -AutoSize -FreezePane 7, 1 -NoHeader -StartRow 7 -ConditionalText (New-ConditionalText -Text 'Yes' -BackgroundColor Green -ForegroundColor White), (New-ConditionalText -Text 'No' -BackgroundColor Red -ForegroundColor White)
 
     $excelPackage = Open-ExcelPackage -Path $ExcelFilePath
     $resultSheet = $excelPackage.Workbook.Worksheets['Results']
@@ -24,6 +24,9 @@ function Export-365ACResultToExcel {
     $resultSheet.Cells["A1:B1"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Black)
     $resultSheet.Cells["A1:B1"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
 
+    # Centering text in column B
+    $resultSheet.Column(2).Style.HorizontalAlignment = [OfficeOpenXml.Style.ExcelHorizontalAlignment]::Center
+    
     # Adding summary information to the Results Sheet
     $resultSheet.Cells["A2"].Value = "Total tests"
     $resultSheet.Cells["B2"].Value = $TotalTests
@@ -49,20 +52,16 @@ function Export-365ACResultToExcel {
     $resultSheet.Cells["B2:B5"].Style.Font.Size = 16
     $resultSheet.Cells["B2:B5"].Style.Font.Bold = $true
 
-    # Adding black line divider
+    # Formatting the Results Sheet headers
     $resultSheet.Cells["A6:B6"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
     $resultSheet.Cells["A6:B6"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Black)
-
-    # Formatting the Results Sheet headers
-    $resultSheet.Cells["A7"].Value = "User Display Name"
-    $resultSheet.Cells["B7"].Value = $TestedProperty
-    $resultSheet.Cells["A7:B7"].Style.Font.Bold = $true
-    $resultSheet.Cells["A7:B7"].Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid
-    $resultSheet.Cells["A7:B7"].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::Gray)
-    $resultSheet.Cells["A7:B7"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
+    $resultSheet.Cells["A6"].Value = "User Display Name"
+    $resultSheet.Cells["B6"].Value = $TestedProperty
+    $resultSheet.Cells["A6:B6"].Style.Font.Bold = $true
+    $resultSheet.Cells["A6:B6"].Style.Font.Color.SetColor([System.Drawing.Color]::White)
 
     # Applying conditional formatting to the results
-    $startRow = 8
+    $startRow = 7
     for ($i = 0; $i -lt $Results.Count; $i++) {
         $row = $i + $startRow
         if ($Results[$i].$TestedProperty -eq 'TRUE') {
