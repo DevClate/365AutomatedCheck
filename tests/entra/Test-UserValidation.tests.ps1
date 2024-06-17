@@ -27,16 +27,16 @@ $properties = @(
     'AccountEnabled', 
     'CompanyName', 
     'Department',
-    'businessphones', 
-    'faxnumber',
+    'BusinessPhones', 
+    'FaxNumber',
     'UserType',
-    'mail',
+    'Mail',
     'EmployeeHireDate',
     'EmployeeID',
     'ShowInAddressList',
     'SignInActivity',
     'LastPasswordChangeDateTime',
-    'mailnickname'
+    'MailNickName'
 )
 
 BeforeAll {
@@ -183,7 +183,7 @@ Describe "Validating User Fields" -Tag "Entra", "Users", "All" {
 
     Context "Fax Number" -Tag "Basic", "Communication"  -ForEach @( $Users ) {
         It "User $($_.DisplayName) should have a Fax Number" {
-            $_.faxnumber | Should -BeTrue -Because "Fax Number is required for all users"
+            $_.FaxNumber | Should -BeTrue -Because "Fax Number is required for all users"
         }
     }
 
