@@ -21,7 +21,7 @@ CompatiblePSEditions = 'Core'
 GUID = 'a745cd66-f76c-4767-8b3c-69993a604b80'
 
 # Author of this module
-Author = 'testmac'
+Author = 'Clayton Tyger'
 
 # Company or vendor of this module
 CompanyName = 'Clayton Tyger'
