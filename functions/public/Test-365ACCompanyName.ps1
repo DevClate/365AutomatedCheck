@@ -1,44 +1,15 @@
-<#
-.SYNOPSIS
-    This function tests whether users have a company name associated with their account and exports the results to Excel, HTML, or the console.    .DESCRIPTION
-    The Test-365ACCompanyName function checks whether users have a company name associated with their account. It takes an array of users, an optional Excel file path as input. It then iterates through each user, determines if they have a company name, and generates a result object for each user. The function returns the results as an array of objects or exports them to an Excel file or an HTML file.
-
-.PARAMETER Users
-    Specifies an array of users to test. Each user should have a display name and a company name property.
-
-.PARAMETER ExcelFilePath
-    Specifies the file path to export the results to an Excel file. If this parameter is provided, the Export-Excel module must be installed.
-
-.PARAMETER HtmlFilePath
-    Specifies the file path to export the results to an HTML file.
-
-.PARAMETER TestedProperty
-    Specifies the property that is being tested. Default is 'Has Company Name'.
-
-.EXAMPLE
-    Test-365ACCompanyName -Users $users -ExcelFilePath "C:\Results.xlsx"
-    This example tests the company names of the users in the $users array and exports the results to an Excel file located at "C:\Results.xlsx".
-
-.EXAMPLE
-    Test-365ACCompanyName -Users $users -HtmlFilePath "C:\Results.html"
-    This example tests the company names of the users in the $users array and exports the results to an HTML file located at "C:\Results.html".
-
-.NOTES
-    - This function requires the ImportExcel module to export results to Excel. If the module is not installed, an error will be displayed.
-    - The Export-365ACResultToExcel and Export-365ACResultToHtml functions are assumed to be defined elsewhere in the script.
-
-.LINK
-    https://github.com/DevClate/365AutomatedCheck
-#>
 Function Test-365ACCompanyName {
     [CmdletBinding()]
     param
     (
         [Parameter(ValueFromPipeline = $true)]
-        [array]$Users = (get-mguser -all -Property DisplayName, CompanyName | Select-Object displayname, CompanyName),
+        [array]$Users = (get-mguser -all -Property DisplayName, CompanyName | Select-Object DisplayName, CompanyName),
         
         [ValidatePattern('\.xlsx$')]
-        [string]$ExcelFilePath,
+        [string]$ValidationExcelFilePath,
+        
+        [ValidatePattern('\.xlsx$')]
+        [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
         [string]$HtmlFilePath,
@@ -46,31 +17,41 @@ Function Test-365ACCompanyName {
         [string]$TestedProperty = 'Has Company Name'
     )
     BEGIN {
-        if ($ExcelFilePath -and !(Get-Command Export-Excel -ErrorAction SilentlyContinue)) {
-            Write-Error "Export-Excel cmdlet not found. Please install the ImportExcel module."
-            return
+        $validCompanyNames = @()
+        if ($ValidationExcelFilePath) {
+            if (!(Get-Command Import-Excel -ErrorAction SilentlyContinue)) {
+                Write-Error "Import-Excel cmdlet not found. Please install the ImportExcel module."
+                return@
+            }
+            # Import the Excel file to get valid company names
+            $validCompanyNames = Import-Excel -Path $ValidationExcelFilePath | Select-Object -ExpandProperty CompanyName -Unique
         }
         $results = @()
     }
     PROCESS {
+        $columnName = $ValidationExcelFilePath ? 'Has Valid Company Name' : 'Has Company Name'
         foreach ($user in $Users) {
             $hasCompanyName = [bool]($user.CompanyName)
+            if ($ValidationExcelFilePath) {
+                $hasCompanyName = $user.CompanyName -in $validCompanyNames
+            }
             $result = [PSCustomObject]@{
                 'User Display Name' = $user.DisplayName
-                'Has Company Name'  = $hasCompanyName
+                $columnName = $hasCompanyName
             }
             $results += $result
         }
     }
     END {
         $totalTests = $results.Count
-        $passedTests = ($results | Where-Object { $_.'Has Company Name' }).Count
+        # Update passed and failed tests calculation based on the new logic
+        $passedTests = ($results | Where-Object { $_.$columnName }).Count
         $failedTests = $totalTests - $passedTests
-        if ($ExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+        if ($OutputExcelFilePath) {
+            Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
         elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
         else {
             Write-Output $results

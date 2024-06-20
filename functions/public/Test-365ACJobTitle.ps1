@@ -8,7 +8,7 @@
 .PARAMETER Users
     Specifies the array of users to test. If not provided, all users will be tested.
 
-.PARAMETER ExcelFilePath
+.PARAMETER OutputExcelFilePath
     Specifies the path to export the results to an Excel file. If this parameter is specified, the function will use the Export-365ACResultToExcel function to export the results.
 
 .PARAMETER HtmlFilePath
@@ -18,7 +18,7 @@
     Specifies the property that is being tested. Default is 'Has Job Title'.
 
 .EXAMPLE
-    Test-365ACJobTitle -Users (Get-MgUser -All) -ExcelFilePath "C:\Results.xlsx"
+    Test-365ACJobTitle -Users (Get-MgUser -All) -OutputExcelFilePath "C:\Results.xlsx"
     Tests all users and exports the results to an Excel file located at "C:\Results.xlsx".
 
 .EXAMPLE
@@ -36,41 +36,53 @@ function Test-365ACJobTitle {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline=$true)]
-        [array]$Users = (Get-MgUser -All),
+        [array]$Users = (Get-MgUser -All -Property DisplayName, JobTitle),
         
         [ValidatePattern('\.xlsx$')]
-        [string]$ExcelFilePath,
+        [string]$ValidationExcelFilePath,
+        
+        [ValidatePattern('\.xlsx$')]
+        [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
         [string]$HtmlFilePath,
-
+        
         [string]$TestedProperty = 'Has Job Title'
     )
     BEGIN {
-        if ($ExcelFilePath -and !(Get-Command Export-Excel -ErrorAction SilentlyContinue)) {
-            Write-Error "Export-Excel cmdlet not found. Please install the ImportExcel module."
-            return
+        $validJobTitles = @()
+        if ($ValidationExcelFilePath) {
+            if (!(Get-Command Import-Excel -ErrorAction SilentlyContinue)) {
+                Write-Error "Import-Excel cmdlet not found. Please install the ImportExcel module."
+                return
+            }
+            # Import the Excel file to get valid job titles
+            $validJobTitles = Import-Excel -Path $ValidationExcelFilePath | Select-Object -ExpandProperty Title -Unique
         }
         $results = @()
     }
     PROCESS {
+        $columnName = $ValidationExcelFilePath ? 'Has Valid Job Title' : 'Has Job Title'
         foreach ($user in $Users) {
             $hasJobTitle = [bool]($user.JobTitle)
+            if ($ValidationExcelFilePath) {
+                $hasJobTitle = $user.JobTitle -in $validJobTitles
+            }
             $result = [PSCustomObject]@{
                 'User Display Name' = $user.DisplayName
-                'Has Job Title' = $hasJobTitle
+                $columnName         = $hasJobTitle
             }
             $results += $result
         }
     }
     END {
         $totalTests = $results.Count
-        $passedTests = ($results | Where-Object { $_.'Has Job Title' }).Count
+        $passedTests = ($results | Where-Object { $_.$columnName }).Count
         $failedTests = $totalTests - $passedTests
-        if ($ExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+        if ($OutputExcelFilePath) {
+            Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         } elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         } else {
             Write-Output $results
         }

@@ -1,16 +1,16 @@
 function Export-365ACResultToExcel {
     param (
         [array]$Results,
-        [string]$ExcelFilePath,
+        [string]$OutputExcelFilePath,
         [int]$TotalTests,
         [int]$PassedTests,
         [int]$FailedTests,
         [string]$TestedProperty
     )
 
-    $results | Export-Excel -Path $ExcelFilePath -WorkSheetname 'Results' -AutoSize -FreezePane 7, 1 -NoHeader -StartRow 7 -ConditionalText (New-ConditionalText -Text 'Yes' -BackgroundColor Green -ForegroundColor White), (New-ConditionalText -Text 'No' -BackgroundColor Red -ForegroundColor White)
+    $results | Export-Excel -Path $OutputExcelFilePath -WorkSheetname 'Results' -AutoSize -FreezePane 7, 1 -NoHeader -StartRow 7 -ConditionalText (New-ConditionalText -Text 'Yes' -BackgroundColor Green -ForegroundColor White), (New-ConditionalText -Text 'No' -BackgroundColor Red -ForegroundColor White)
 
-    $excelPackage = Open-ExcelPackage -Path $ExcelFilePath
+    $excelPackage = Open-ExcelPackage -Path $OutputExcelFilePath
     $resultSheet = $excelPackage.Workbook.Worksheets['Results']
 
     # Adding title to the Results Sheet

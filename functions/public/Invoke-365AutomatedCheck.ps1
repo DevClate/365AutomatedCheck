@@ -63,10 +63,10 @@ function Invoke-365AutomatedCheck {
 
     #Requires -Module Pester, ImportExcel
 
-    $XmlPath = Set-365ACDefaultPath -Path $XmlPath -DefaultPath '365ACReport.xml'
+    $XmlPath = Set-365ACDefaultOutputPath -Path $XmlPath -DefaultPath '365ACReport.xml'
     Write-Host "Using XML Path: $XmlPath"
 
-    $OutputHtmlPath = Set-365ACDefaultPath -Path $OutputHtmlPath -DefaultPath '365ACReport.html'
+    $OutputHtmlPath = Set-365ACDefaultOutputPath -Path $OutputHtmlPath -DefaultPath '365ACReport.html'
     Write-Host "Using HTML Output Path: $OutputHtmlPath"
 
     $pesterConfig = Get-365ACPesterConfiguration -Path $Path -Tag $Tag -ExcludeTag $ExcludeTag -XmlPath $XmlPath -PesterConfiguration $PesterConfiguration -Verbosity $Verbosity -PassThru $PassThru

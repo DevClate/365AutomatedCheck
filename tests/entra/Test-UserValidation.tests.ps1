@@ -283,7 +283,6 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
                     $selectedCompanyName = Read-Host "The company name of $($user.DisplayName) is not valid. Please enter a valid company name from the list: $($validCompanyName -join ', '), or just press ENTER to skip this update"
                     if ([string]::IsNullOrEmpty($selectedCompanyName) -or $selectedCompanyName -eq 'SKIP') {
                         Write-Host "Skipping update for $($user.DisplayName)"
-                        Write-Host "Excel Data: $($excelData.CompanyName)"
                         throw "Update skipped for $($user.DisplayName). Test failed."
                     }
                     elseif ($selectedCompanyName -in $validCompanyName) {

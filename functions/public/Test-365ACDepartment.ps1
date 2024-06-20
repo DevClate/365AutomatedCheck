@@ -8,7 +8,7 @@
 .PARAMETER Users
     Specifies the array of users to be tested. The users should have the 'DisplayName' and 'Department' properties.
 
-.PARAMETER ExcelFilePath
+.PARAMETER OutputExcelFilePath
     Specifies the path to the Excel file where the test results will be exported. If this parameter is specified, the function will use the Export-365ACResultToExcel function to export the results to an Excel file.
 
 .PARAMETER HtmlFilePath
@@ -18,7 +18,7 @@
     Specifies the property that is being tested. Default is 'Has Department'.
 
 .EXAMPLE
-    Test-365ACDepartment -Users $users -ExcelFilePath "C:\TestResults.xlsx"
+    Test-365ACDepartment -Users $users -OutputExcelFilePath "C:\TestResults.xlsx"
     Tests the department property of the specified users and exports the test results to an Excel file.
 
 .EXAMPLE
@@ -37,43 +37,53 @@ Function Test-365ACDepartment {
     param
     (
         [Parameter(ValueFromPipeline = $true)]
-        [array]$Users = (get-mguser -all -Property DisplayName, Department | Select-Object displayname, Department),
+        [array]$Users = (get-mguser -all -Property DisplayName, Department | Select-Object DisplayName, Department),
         
         [ValidatePattern('\.xlsx$')]
-        [string]$ExcelFilePath,
+        [string]$ValidationExcelFilePath,
+        
+        [ValidatePattern('\.xlsx$')]
+        [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
         [string]$HtmlFilePath,
-
         [string]$TestedProperty = 'Has Department'
     )
     BEGIN {
-        if ($ExcelFilePath -and !(Get-Command Export-Excel -ErrorAction SilentlyContinue)) {
-            Write-Error "Export-Excel cmdlet not found. Please install the ImportExcel module."
-            return
+        $validDepartments = @()
+        if ($ValidationExcelFilePath) {
+            if (!(Get-Command Import-Excel -ErrorAction SilentlyContinue)) {
+                Write-Error "Import-Excel cmdlet not found. Please install the ImportExcel module."
+                return
+            }
+            # Import the Excel file to get valid department names
+            $validDepartments = Import-Excel -Path $ValidationExcelFilePath | Select-Object -ExpandProperty Department -Unique
         }
         $results = @()
     }
     PROCESS {
+        $columnName = $ValidationExcelFilePath ? 'Has Valid Department' : 'Has Department'
         foreach ($user in $Users) {
-            #Write-Output "Checking user $($user.DisplayName) with department $($user.Department)"
             $hasDepartment = [bool]($user.Department)
+            if ($ValidationExcelFilePath) {
+                $hasDepartment = $user.Department -in $validDepartments
+            }
             $result = [PSCustomObject]@{
                 'User Display Name' = $user.DisplayName
-                'Has Department'    = $hasDepartment
+                $columnName = $hasDepartment
             }
             $results += $result
         }
     }
     END {
         $totalTests = $results.Count
-        $passedTests = ($results | Where-Object { $_.'Has Department' }).Count
+        $passedTests = ($results | Where-Object { $_.$columnName }).Count
         $failedTests = $totalTests - $passedTests
-        if ($ExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+        if ($OutputExcelFilePath) {
+            Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
         elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
         else {
             Write-Output $results

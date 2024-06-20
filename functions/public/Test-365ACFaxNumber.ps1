@@ -8,7 +8,7 @@
 .PARAMETER Users
     Specifies the array of users to test. If not provided, it retrieves all users using the Get-MgUser cmdlet.
 
-.PARAMETER ExcelFilePath
+.PARAMETER OutputExcelFilePath
     Specifies the path to export the results as an Excel file. If this parameter is provided, the Export-365ACResultToExcel function is called to export the results.
 
 .PARAMETER HtmlFilePath
@@ -18,7 +18,7 @@
     Specifies the property that is being tested. Default is 'Has Fax Number'.
 
 .EXAMPLE
-    Test-365ACFaxNumber -Users $users -ExcelFilePath "C:\Results.xlsx"
+    Test-365ACFaxNumber -Users $users -OutputExcelFilePath "C:\Results.xlsx"
     Tests the specified users for fax numbers and exports the results to an Excel file.
 
 .EXAMPLE
@@ -38,42 +38,54 @@ Function Test-365ACFaxNumber {
     param
     (
         [Parameter(ValueFromPipeline = $true)]
-        [array]$Users = (get-mguser -all -Property DisplayName, FaxNumber | Select-Object displayname, FaxNumber),
+        [array]$Users = (get-mguser -all -Property DisplayName, FaxNumber | Select-Object DisplayName, FaxNumber),
         
         [ValidatePattern('\.xlsx$')]
-        [string]$ExcelFilePath,
-
+        [string]$ValidationExcelFilePath,
+        
+        [ValidatePattern('\.xlsx$')]
+        [string]$OutputExcelFilePath,
+        
         [ValidatePattern('\.html$')]
         [string]$HtmlFilePath,
-
+        
         [string]$TestedProperty = 'Has Fax Number'
     )
     BEGIN {
-        if ($ExcelFilePath -and !(Get-Command Export-Excel -ErrorAction SilentlyContinue)) {
-            Write-Error "Export-Excel cmdlet not found. Please install the ImportExcel module."
-            return
+        $validFaxNumbers = @()
+        if ($ValidationExcelFilePath) {
+            if (!(Get-Command Import-Excel -ErrorAction SilentlyContinue)) {
+                Write-Error "Import-Excel cmdlet not found. Please install the ImportExcel module."
+                return
+            }
+            # Import the Excel file to get valid fax numbers
+            $validFaxNumbers = Import-Excel -Path $ValidationExcelFilePath | Select-Object -ExpandProperty FaxNumber -Unique
         }
         $results = @()
     }
     PROCESS {
+        $columnName = $ValidationExcelFilePath ? 'Has Valid Fax Number' : 'Has Fax Number'
         foreach ($user in $Users) {
             $hasFaxNumber = [bool]($user.FaxNumber)
+            if ($ValidationExcelFilePath) {
+                $hasFaxNumber = $user.FaxNumber -in $validFaxNumbers
+            }
             $result = [PSCustomObject]@{
                 'User Display Name' = $user.DisplayName
-                'Has Fax Number'    = $hasFaxNumber
+                $columnName         = $hasFaxNumber
             }
             $results += $result
         }
     }
     END {
         $totalTests = $results.Count
-        $passedTests = ($results | Where-Object { $_.'Has Fax Number' }).Count
+        $passedTests = ($results | Where-Object { $_.$columnName }).Count
         $failedTests = $totalTests - $passedTests
-        if ($ExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -ExcelFilePath $ExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+        if ($OutputExcelFilePath) {
+            Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
         elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
         else {
             Write-Output $results
