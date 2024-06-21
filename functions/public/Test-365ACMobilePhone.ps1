@@ -8,6 +8,9 @@
 .PARAMETER Users
     Specifies an array of users to test. If not provided, the function retrieves all users in Microsoft 365.
 
+.PARAMETER ValidationExcelFilePath
+    Specifies the path to an Excel file containing a list of valid mobile phone numbers. If this parameter is provided, the function will validate the mobile phone numbers of the users against this list.
+    
 .PARAMETER OutputExcelFilePath
     Specifies the path to an Excel file where the results will be exported. If this parameter is provided, the function requires the ImportExcel module to be installed.
 

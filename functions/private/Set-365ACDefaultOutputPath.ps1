@@ -1,3 +1,29 @@
+<#
+.SYNOPSIS
+Sets the default output path for 365ACReports.
+
+.DESCRIPTION
+This function sets the default output path for 365ACReports if the provided path is empty. It creates a directory with the current date and time appended to the default path.
+
+.PARAMETER Path
+The path to set as the output path. If not provided, the function will generate a path based on the default path and the current date and time.
+
+.PARAMETER DefaultPath
+The default path to use if the provided path is empty.
+
+.EXAMPLE
+Set-365ACDefaultOutputPath -Path "C:\Reports" -DefaultPath "Output"
+
+This example sets the output path to "C:\Reports" if provided, otherwise it generates a path based on the default path "Output" and the current date and time.
+
+.OUTPUTS
+System.String
+The output path that was set.
+
+.NOTES
+Author: Clayton Tyger
+Date: 06/20/2024
+#>
 function Set-365ACDefaultOutputPath {
     param (
         [string] $Path,

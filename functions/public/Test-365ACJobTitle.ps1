@@ -8,6 +8,9 @@
 .PARAMETER Users
     Specifies the array of users to test. If not provided, all users will be tested.
 
+.PARAMETER ValidationExcelFilePath
+    Specifies the path to an Excel file containing a list of valid job titles. If this parameter is specified, the function will validate the job titles of the users against this list.
+    
 .PARAMETER OutputExcelFilePath
     Specifies the path to export the results to an Excel file. If this parameter is specified, the function will use the Export-365ACResultToExcel function to export the results.
 

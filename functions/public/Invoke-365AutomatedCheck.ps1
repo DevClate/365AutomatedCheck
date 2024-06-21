@@ -49,15 +49,24 @@ function Invoke-365AutomatedCheck {
     [CmdletBinding()]
     param (
         [hashtable] $PesterConfiguration,
+        
         [ValidateSet('None', 'Normal', 'Detailed', 'Diagnostic')]
         [string] $Verbosity = 'None',
+        
         [string] $XsltPath = "$RootPath/functions/private/DefaultReportConfig.xslt",
+        
         [string] $XmlPath,
+        
         [string] $Path = "$RootPath/tests/",
+        
         [string] $OutputHtmlPath,
+        
         [bool] $PassThru = $false,
+        
         [string[]] $Tag,
+        
         [string[]] $ExcludeTag,
+        
         [string] $ExcelFilePath
     )
 

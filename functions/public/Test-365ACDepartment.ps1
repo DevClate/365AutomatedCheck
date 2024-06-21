@@ -8,6 +8,9 @@
 .PARAMETER Users
     Specifies the array of users to be tested. The users should have the 'DisplayName' and 'Department' properties.
 
+.PARAMETER ValidationExcelFilePath
+    Specifies the path to an Excel file containing a list of valid Departments. If specified, the function will validate the Departments of the users against this list.
+
 .PARAMETER OutputExcelFilePath
     Specifies the path to the Excel file where the test results will be exported. If this parameter is specified, the function will use the Export-365ACResultToExcel function to export the results to an Excel file.
 
@@ -47,6 +50,7 @@ Function Test-365ACDepartment {
         
         [ValidatePattern('\.html$')]
         [string]$HtmlFilePath,
+        
         [string]$TestedProperty = 'Has Department'
     )
     BEGIN {

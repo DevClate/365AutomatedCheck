@@ -1,3 +1,54 @@
+<#
+.SYNOPSIS
+Exports the 365AutomatedCheck results to an Excel file.
+
+.DESCRIPTION
+The Export-365ACResultToExcel function takes an array of results, along with other parameters, and exports the results to an Excel file. It applies formatting, adds summary information, and applies conditional formatting based on the tested property.
+
+.PARAMETER Results
+The array of results to be exported to the Excel file.
+
+.PARAMETER OutputExcelFilePath
+The path of the output Excel file.
+
+.PARAMETER TotalTests
+The total number of tests.
+
+.PARAMETER PassedTests
+The number of tests that passed.
+
+.PARAMETER FailedTests
+The number of tests that failed.
+
+.PARAMETER TestedProperty
+The name of the property that was tested.
+
+.EXAMPLE
+$Results = @(
+    [PSCustomObject]@{
+        "UserDisplayName" = "John Doe"
+        "TestedProperty" = $true
+    },
+    [PSCustomObject]@{
+        "UserDisplayName" = "Jane Smith"
+        "TestedProperty" = $false
+    }
+)
+
+$OutputExcelFilePath = "C:\Results.xlsx"
+$TotalTests = $Results.Count
+$PassedTests = ($Results | Where-Object { $_.TestedProperty }).Count
+$FailedTests = ($Results | Where-Object { -not $_.TestedProperty }).Count
+$TestedProperty = "TestedProperty"
+
+Export-365ACResultToExcel -Results $Results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $TotalTests -PassedTests $PassedTests -FailedTests $FailedTests -TestedProperty $TestedProperty
+
+This example exports the results to an Excel file named "Results.xlsx" and applies formatting and conditional formatting based on the "TestedProperty" property.
+
+.NOTES
+Author: Clayton Tyger
+Date: 06/20/2024
+#>
 function Export-365ACResultToExcel {
     param (
         [array]$Results,

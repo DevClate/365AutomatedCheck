@@ -8,7 +8,7 @@ param (
     [string] $UserFilter = 'all'
 )
 
-#Requires -Module Pester, ImportExcel, Microsoft.Graph
+#Requires -Module Pester, ImportExcel, Microsoft.Graph.Identity.DirectoryManagement
 
 $properties = @(
     'UserPrincipalName',

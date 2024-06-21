@@ -8,6 +8,9 @@
 .PARAMETER Users
     Specifies the array of users to test. If not provided, it retrieves all users using the Get-MgUser cmdlet.
 
+.PARAMETER ValidationExcelFilePath
+    Specifies the path to an Excel file containing a list of valid fax numbers. If this parameter is provided, the function will validate the fax numbers of the users against this list.
+
 .PARAMETER OutputExcelFilePath
     Specifies the path to export the results as an Excel file. If this parameter is provided, the Export-365ACResultToExcel function is called to export the results.
 
@@ -27,7 +30,6 @@
 
 .NOTES
     - This function requires the ImportExcel module to export results to Excel. If the module is not installed, an error will be displayed.
-    - The Export-365ACResultToExcel and Export-365ACResultToHtml functions are assumed to be defined elsewhere in the script.
 
 .LINK
     https://github.com/DevClate/365AutomatedCheck

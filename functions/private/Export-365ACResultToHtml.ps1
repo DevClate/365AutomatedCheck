@@ -1,3 +1,52 @@
+<#
+.SYNOPSIS
+Exports 365AutomatedCheck results to an HTML file.
+
+.DESCRIPTION
+The Export-365ACResultToHtml function takes an array of results, along with other parameters, and generates an HTML file that displays the results in a table format. The function calculates the total number of tests, the number of passed tests, the number of failed tests, and the number of tests that were not tested. It also provides filter buttons to toggle the visibility of different types of test results.
+
+.PARAMETER Results
+The array of results containing the test data. Each element in the array should be an object with properties representing the test results.
+
+.PARAMETER HtmlFilePath
+The path to the HTML file where the results will be exported.
+
+.PARAMETER TotalTests
+The total number of tests.
+
+.PARAMETER PassedTests
+The number of tests that passed.
+
+.PARAMETER FailedTests
+The number of tests that failed.
+
+.PARAMETER TestedProperty
+The name of the property in the test results object that indicates whether a test was passed or failed.
+
+.EXAMPLE
+$Results = @(
+    [PSCustomObject]@{
+        'User Display Name' = 'John Doe'
+        'Test Property' = 'Yes'
+    },
+    [PSCustomObject]@{
+        'User Display Name' = 'Jane Smith'
+        'Test Property' = 'No'
+    }
+)
+
+$HtmlFilePath = '/path/to/results.html'
+$TotalTests = $Results.Count
+$PassedTests = ($Results | Where-Object { $_.'Test Property' -eq 'Yes' }).Count
+$FailedTests = ($Results | Where-Object { $_.'Test Property' -eq 'No' }).Count
+$TestedProperty = 'Test Property'
+
+Export-365ACResultToHtml -Results $Results -HtmlFilePath $HtmlFilePath -TotalTests $TotalTests -PassedTests $PassedTests -FailedTests $FailedTests -TestedProperty $TestedProperty
+
+.NOTES
+This function requires PowerShell version 5.1 or above.
+#>
+
 function Export-365ACResultToHtml {
     param (
         [array]$Results,

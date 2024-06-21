@@ -1,3 +1,29 @@
+<#
+.SYNOPSIS
+Converts an XML file to an HTML file using an XSLT transformation.
+
+.DESCRIPTION
+The Convert-365ACXmlToHtml function takes an XML file, an XSLT file, and an output HTML file path as input parameters. It performs an XSLT transformation on the XML file using the specified XSLT file and generates an HTML report at the specified output path.
+
+.PARAMETER XmlPath
+The path to the XML file that needs to be transformed.
+
+.PARAMETER XsltPath
+The path to the XSLT file that defines the transformation rules.
+
+.PARAMETER OutputHtmlPath
+The path to the output HTML file that will be generated.
+
+.EXAMPLE
+Convert-365ACXmlToHtml -XmlPath "C:\Path\To\Input.xml" -XsltPath "C:\Path\To\Transform.xslt" -OutputHtmlPath "C:\Path\To\Output.html"
+This example demonstrates how to use the Convert-365ACXmlToHtml function to convert an XML file to an HTML file using a specified XSLT transformation.
+
+.NOTES
+This function requires the System.Xml.Xsl.XslCompiledTransform and System.Xml.XmlDocument classes from the .NET Framework.
+
+.LINK
+https://docs.microsoft.com/en-us/dotnet/api/system.xml.xsl.xslcompiledtransform?view=net-5.0
+#>
 function Convert-365ACXmlToHtml {
     param (
         [string] $XmlPath,
