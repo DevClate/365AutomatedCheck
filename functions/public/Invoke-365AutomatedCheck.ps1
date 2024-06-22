@@ -57,7 +57,7 @@ function Invoke-365AutomatedCheck {
         
         [string] $XmlPath,
         
-        [string] $Path = "$RootPath/tests/",
+        [string] $Path = (Join-Path -Path $RootPath -ChildPath "tests"),
         
         [string] $OutputHtmlPath,
         
