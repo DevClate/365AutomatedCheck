@@ -67,7 +67,9 @@ function Invoke-365AutomatedCheck {
         
         [string[]] $ExcludeTag,
         
-        [string] $ExcelFilePath
+        [string] $ExcelFilePath,
+
+        [bool] $NoExcel = $false
     )
 
     #Requires -Module Pester, ImportExcel
@@ -78,9 +80,16 @@ function Invoke-365AutomatedCheck {
     $OutputHtmlPath = Set-365ACDefaultOutputPath -Path $OutputHtmlPath -DefaultPath '365ACReport.html'
     Write-Host "Using HTML Output Path: $OutputHtmlPath"
 
-    $pesterConfig = Get-365ACPesterConfiguration -Path $Path -Tag $Tag -ExcludeTag $ExcludeTag -XmlPath $XmlPath -PesterConfiguration $PesterConfiguration -Verbosity $Verbosity -PassThru $PassThru
+    $pesterConfig = Get-365ACPesterConfiguration -Path $Path -Tag $Tag -ExcludeTag $ExcludeTag -XmlPath $XmlPath -PesterConfiguration $PesterConfiguration -Verbosity $Verbosity -PassThru $PassThru -NoExcel $NoExcel
 
-    $env:ExcelFilePath = $ExcelFilePath
+    # Conditionally set the ExcelFilePath environment variable
+    if (-not $NoExcel) {
+        $env:ExcelFilePath = $ExcelFilePath
+        $env:NoExcel = $false
+    }
+    else {
+        $env:NoExcel = $true
+    }
 
     Invoke-Pester -Configuration $pesterConfig
 

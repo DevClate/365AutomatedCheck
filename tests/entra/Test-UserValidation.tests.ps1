@@ -5,7 +5,9 @@ param (
     [string] $ExcelFilePath = $env:ExcelFilePath,
     [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     [ValidateSet('all', 'members', 'guests', 'enabled', 'disabled')]
-    [string] $UserFilter = 'all'
+    [string] $UserFilter = 'all',
+    [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+    [bool] $NoExcel = [bool]::Parse($env:NoExcel)
 )
 
 #Requires -Module Pester, ImportExcel, Microsoft.Graph.Identity.DirectoryManagement
@@ -40,31 +42,37 @@ $properties = @(
 )
 
 BeforeAll {
+    # Define the default Excel file path
     $defaultPath = "$RootPath/assets/365ValidationParameters.xlsx"
-    if ([string]::IsNullOrEmpty($ExcelFilePath) -or !(Test-Path -Path $ExcelFilePath)) {
-        $ExcelFilePath = $defaultPath
-        Write-Host "Default Excel file being used: $ExcelFilePath"
-    } else {
-        Write-Host "Using provided Excel file path: $ExcelFilePath"
+
+    if ($NoExcel) {
+        Write-Host "Skipping Excel file loading due to NoExcel parameter."
+        return # Exit the block early
     }
-    
-    try {
-        $excelData = Import-Excel -Path $ExcelFilePath | ForEach-Object {
-            $_.PSObject.Properties | ForEach-Object {
-                if ([string]::IsNullOrEmpty($_.Value)) {
-                    $_.Value = "NA" # Replace with your desired default value
+    else {
+        if (-not [string]::IsNullOrEmpty($ExcelFilePath) -and (Test-Path -Path $ExcelFilePath)) {
+            Write-Host "Using provided Excel file path: $ExcelFilePath"
+        }
+        else {
+            $ExcelFilePath = $defaultPath
+            Write-Host "Default Excel file being used: $ExcelFilePath"
+        }
+        try {
+            $excelData = Import-Excel -Path $ExcelFilePath | ForEach-Object {
+                $_.PSObject.Properties | ForEach-Object {
+                    if ([string]::IsNullOrEmpty($_.Value)) {
+                        $_.Value = "NA" # Replace with your desired default value
+                    }
                 }
+                $_ # Output the modified row
             }
-            $_ # Output the modified row
+        }
+        catch {
+            Write-Host "Error importing Excel file: $($_.Exception.Message). Using default Excel file path: $defaultPath"
+            # Consider attempting to re-import using the default path here
         }
     }
-    catch {
-        Write-Host "Error importing Excel file: $_. Using default Excel file path: $defaultPath"
-        $ExcelFilePath = $defaultPath
-        $excelData = Import-Excel -Path $ExcelFilePath
-    }
 }
-
 BeforeDiscovery {
     # Connect to the Graph SDK with the correct permissions
     Connect-MgGraph -NoWelcome -Scopes AuditLog.Read.All, Directory.Read.All
@@ -79,7 +87,7 @@ BeforeDiscovery {
     }
 
     # Construct the URI with the appropriate filter
-    $Headers = @{ConsistencyLevel="Eventual"}  
+    $Headers = @{ConsistencyLevel = "Eventual" }  
     $Uri = "https://graph.microsoft.com/beta/users?`$count=true&`$top=999&`$select=" + ($properties -join ',')
     if ($filterQuery) {
         $Uri += "&`$filter=$filterQuery"
