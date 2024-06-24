@@ -1,36 +1,40 @@
 <#
 .SYNOPSIS
-    This function tests the department property of users and exports the results to Excel, HTML, or the console.
+    Tests whether users in Microsoft 365 have a department assigned and optionally validates against a list of valid departments.
 
 .DESCRIPTION
-    The Test-365ACDepartment function tests the department property of users and generates test results. It takes an array of users as input and checks if each user has a department specified. The function then generates test results indicating whether each user has a department or not.
+    The Test-365ACDepartment function checks if users in Microsoft 365 have a department assigned and can validate these departments against a provided list of valid departments. It supports exporting the results to an Excel file, an HTML file, or outputting directly to the console.
 
 .PARAMETER Users
-    Specifies the array of users to be tested. The users should have the 'DisplayName' and 'Department' properties.
+    Specifies an array of users to test. If not provided, the function retrieves all users in Microsoft 365 with their DisplayName and Department properties.
 
 .PARAMETER ValidationExcelFilePath
-    Specifies the path to an Excel file containing a list of valid Departments. If specified, the function will validate the Departments of the users against this list.
+    Specifies the path to an Excel file containing a list of valid departments. If provided, the function validates the users' departments against this list.
 
 .PARAMETER OutputExcelFilePath
-    Specifies the path to the Excel file where the test results will be exported. If this parameter is specified, the function will use the Export-365ACResultToExcel function to export the results to an Excel file.
+    Specifies the path to an Excel file where the results will be exported. Requires the ImportExcel module.
 
 .PARAMETER HtmlFilePath
-    Specifies the path to the HTML file where the test results will be exported. If this parameter is specified, the function will use the Export-365ACResultToHtml function to export the results to an HTML file.
+    Specifies the path to an HTML file where the results will be exported. Requires the Export-365ACResultToHtml function to be defined.
 
 .PARAMETER TestedProperty
-    Specifies the property that is being tested. Default is 'Has Department'.
+    Specifies the property that is being tested. Defaults to 'Has Department' but changes to 'Has Valid Department' if a validation list is provided.
 
 .EXAMPLE
-    Test-365ACDepartment -Users $users -OutputExcelFilePath "C:\TestResults.xlsx"
-    Tests the department property of the specified users and exports the test results to an Excel file.
+    Test-365ACDepartment -Users (Get-MgUser -All) -OutputExcelFilePath "C:\Results.xlsx"
+    Retrieves all users in Microsoft 365 and exports the validation results to an Excel file.
 
 .EXAMPLE
-    Test-365ACDepartment -Users $users -HtmlFilePath "C:\TestResults.html"
-    Tests the department property of the specified users and exports the test results to an HTML file.
+    Test-365ACDepartment -Users (Get-MgUser -All) -HtmlFilePath "C:\Results.html"
+    Retrieves all users in Microsoft 365 and exports the validation results to an HTML file.
+
+.EXAMPLE
+    Test-365ACDepartment -Users (Get-MgUser -All)
+    Retrieves all users in Microsoft 365 and outputs the validation results to the console.
 
 .NOTES
-    - This function requires the ImportExcel module to export results to Excel. If the module is not installed, an error will be displayed.
-    - The Export-365ACResultToExcel and Export-365ACResultToHtml functions are assumed to be defined elsewhere in the script.
+    - Requires the ImportExcel module for exporting results to Excel. If not installed, an error will be displayed.
+    - The Export-365ACResultToExcel and Export-365ACResultToHtml functions must be defined for exporting results to Excel or HTML, respectively.
 
 .LINK
     https://github.com/DevClate/365AutomatedCheck
@@ -57,7 +61,7 @@ Function Test-365ACDepartment {
         $validDepartments = @()
         if ($ValidationExcelFilePath) {
             if (!(Get-Command Import-Excel -ErrorAction SilentlyContinue)) {
-                Write-Error "Import-Excel cmdlet not found. Please install the ImportExcel module."
+                Stop-PSFFunction -Message "Import-Excel cmdlet not found. Please install the ImportExcel module." -ErrorRecord $_ -Tag 'MissingModule'
                 return
             }
             # Import the Excel file to get valid department names
@@ -90,7 +94,7 @@ Function Test-365ACDepartment {
             Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
         else {
-            Write-Output $results
+            Write-PSFMessage -Level Output -Message ($results | Out-String)
         }
     }
 }

@@ -1,3 +1,35 @@
+<#
+.SYNOPSIS
+    Validates user properties in Microsoft 365 using PowerShell Pester tests.
+
+.DESCRIPTION
+    This script performs validation of user properties in Microsoft 365 by leveraging the Microsoft Graph API and Pester testing framework. It supports filtering users based on their type (members, guests, etc.), enabling/disabling output to an Excel file, and customizing the domain name and Excel file path through parameters.
+
+.PARAMETER DomainName
+    Specifies the domain name to use for user validation. Defaults to the primary domain in Microsoft 365.
+
+.PARAMETER ExcelFilePath
+    Specifies the path to an Excel file where the validation results will be saved. If not provided, it defaults to a predefined path.
+
+.PARAMETER UserFilter
+    Filters the users to validate based on their type. Valid options are 'all', 'members', 'guests', 'enabled', 'disabled'. Defaults to 'all'.
+
+.PARAMETER NoExcel
+    Specifies whether to skip importing the Excel validation file. If set to $true, no Excel file will be imported.
+
+.EXAMPLE
+    .\Test-UserValidation.tests.ps1 -NoExcel $true
+    Validates all users in the default domain and does not generate an Excel report.
+
+.EXAMPLE
+    .\Test-UserValidation.tests.ps1 -DomainName 'contoso.com' -ExcelFilePath 'C:\Reports\UserValidation.xlsx'
+    Validates all users in the 'contoso.com' domain and saves the report to the specified Excel file.
+
+.NOTES
+    Requires the Pester, ImportExcel, and Microsoft.Graph.Identity.DirectoryManagement modules.
+    Ensure you have the necessary permissions to access user data via Microsoft Graph.
+
+#>
 param (
     [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     [string] $DomainName = (Get-MgDomain | Where-Object { $_.IsDefault -eq $true }).Id,
@@ -46,16 +78,16 @@ BeforeAll {
     $defaultPath = "$RootPath/assets/365ValidationParameters.xlsx"
 
     if ($NoExcel) {
-        Write-Host "Skipping Excel file loading due to NoExcel parameter."
+        Write-PSFMessage -Level Output -Message "Skipping Excel file loading due to NoExcel parameter."
         return # Exit the block early
     }
     else {
         if (-not [string]::IsNullOrEmpty($ExcelFilePath) -and (Test-Path -Path $ExcelFilePath)) {
-            Write-Host "Using provided Excel file path: $ExcelFilePath"
+            Write-PSFMessage -Level Output -Message "Using provided Excel file path: $ExcelFilePath"
         }
         else {
             $ExcelFilePath = $defaultPath
-            Write-Host "Default Excel file being used: $ExcelFilePath"
+            Write-PSFMessage -Level Output -Message "Default Excel file being used: $ExcelFilePath"
         }
         try {
             $excelData = Import-Excel -Path $ExcelFilePath | ForEach-Object {
@@ -68,7 +100,7 @@ BeforeAll {
             }
         }
         catch {
-            Write-Host "Error importing Excel file: $($_.Exception.Message). Using default Excel file path: $defaultPath"
+            Write-PSFMessage -Level Warning -Message "Error importing Excel file: $($_.Exception.Message). Using default Excel file path: $defaultPath"
             # Consider attempting to re-import using the default path here
         }
     }
@@ -97,17 +129,17 @@ BeforeDiscovery {
     [array]$Users = $Data.Value
 
     If (!($Users)) {
-        Write-Host "Can't find any users... exiting!" ; break
+        Write-PSFMessage -Level Output -Message "Can't find any users... exiting!" ; break
     }
 
     # Paginate until we have all the user accounts
     While ($Null -ne $Data.'@odata.nextLink') {
-        Write-Host ("Fetching more user accounts - currently at {0}" -f $Users.count)
+        Write-PSFMessage -Level Output ("Fetching more user accounts - currently at {0}" -f $Users.count)
         $Uri = $Data.'@odata.nextLink'
         [array]$Data = Invoke-MgGraphRequest -Uri $Uri -Headers $Headers
         $Users = $Users + $Data.Value
     }
-    Write-Host ("All available user accounts fetched ({0}) - now processing" -f $Users.count)
+    Write-PSFMessage -Level Output -Message ("All available user accounts fetched ({0}) - now processing" -f $Users.count)
 }
 
 #Region User Fields
@@ -290,12 +322,12 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
                 if (![string]::IsNullOrEmpty($user.Id)) {
                     $selectedCompanyName = Read-Host "The company name of $($user.DisplayName) is not valid. Please enter a valid company name from the list: $($validCompanyName -join ', '), or just press ENTER to skip this update"
                     if ([string]::IsNullOrEmpty($selectedCompanyName) -or $selectedCompanyName -eq 'SKIP') {
-                        Write-Host "Skipping update for $($user.DisplayName)"
+                        Write-PSFMessage -Level Output -Message "Skipping update for $($user.DisplayName)"
                         throw "Update skipped for $($user.DisplayName). Test failed."
                     }
                     elseif ($selectedCompanyName -in $validCompanyName) {
                         Update-MgUser -UserId $user.Id -CompanyName $selectedCompanyName
-                        Write-Host "Updated the company name of $($user.DisplayName) to $selectedCompanyName"
+                        Write-PSFMessage -Level Output -Message "Updated the company name of $($user.DisplayName) to $selectedCompanyName"
                     }
                     else {
                         throw "Invalid company name selected. Test failed."
@@ -319,12 +351,12 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
                 if (![string]::IsNullOrEmpty($user.Id)) {
                     $selectedStreet = Read-Host "The street address of $($user.DisplayName) is not valid. Please enter a valid street address from the list: $($validStreetName -join ', '), or just press ENTER to skip this update"
                     if ([string]::IsNullOrEmpty($selectedStreet) -or $selectedStreet -eq 'SKIP') {
-                        Write-Host "Skipping update for $($user.DisplayName)"
+                        Write-PSFMessage -Level Output -Message "Skipping update for $($user.DisplayName)"
                         throw "Update skipped for $($user.DisplayName). Test failed."
                     }
                     elseif ($selectedStreet -in $validStreetName) {
                         Update-MgUser -UserId $user.Id -StreetAddress $selectedStreet
-                        Write-Host "Updated the street address of $($user.DisplayName) to $selectedStreet"
+                        Write-PSFMessage -Level Output -Message "Updated the street address of $($user.DisplayName) to $selectedStreet"
                     }
                     else {
                         throw "Invalid street address selected. Test failed."
@@ -348,12 +380,12 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
                 if (![string]::IsNullOrEmpty($user.Id)) {
                     $selectedCity = Read-Host "The city of $($user.DisplayName) is not valid. Please enter a valid city from the list: $($validCityName -join ', '), or just press ENTER to skip this update"
                     if ([string]::IsNullOrEmpty($selectedCity) -or $selectedCity -eq 'SKIP') {
-                        Write-Host "Skipping update for $($user.DisplayName)"
+                        Write-PSFMessage -Level Output -Message "Skipping update for $($user.DisplayName)"
                         throw "Update skipped for $($user.DisplayName). Test failed."
                     }
                     elseif ($selectedCity -in $validCityName) {
                         Update-MgUser -UserId $user.Id -City $selectedCity
-                        Write-Host "Updated the city of $($user.DisplayName) to $selectedCity"
+                        Write-PSFMessage -Level Output -Message "Updated the city of $($user.DisplayName) to $selectedCity"
                     }
                     else {
                         throw "Invalid city selected. Test failed."
@@ -377,12 +409,12 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
                 if (![string]::IsNullOrEmpty($user.Id)) {
                     $selectedState = Read-Host "The state of $($user.DisplayName) is not valid. Please enter a valid state from the list: $($validStates -join ', '), or just press ENTER to skip this update"
                     if ([string]::IsNullOrEmpty($selectedState) -or $selectedState -eq 'SKIP') {
-                        Write-Host "Skipping update for $($user.DisplayName)"
+                        Write-PSFMessage -Level Output -Message "Skipping update for $($user.DisplayName)"
                         throw "Update skipped for $($user.DisplayName). Test failed."
                     }
                     elseif ($selectedState -in $validStates) {
                         Update-MgUser -UserId $user.Id -State $selectedState
-                        Write-Host "Updated the state of $($user.DisplayName) to $selectedState"
+                        Write-PSFMessage -Level Output -Message "Updated the state of $($user.DisplayName) to $selectedState"
                     }
                     else {
                         throw "Invalid state selected. Test failed."
@@ -406,12 +438,12 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
                 if (![string]::IsNullOrEmpty($user.Id)) {
                     $selectedPostalCode = Read-Host "The postal code of $($user.DisplayName) is not valid. Please enter a valid postal code from the list: $($validPostalCode -join ', '), or just press ENTER to skip this update"
                     if ([string]::IsNullOrEmpty($selectedPostalCode) -or $selectedPostalCode -eq 'SKIP') {
-                        Write-Host "Skipping update for $($user.DisplayName)"
+                        Write-PSFMessage -Level Output -Message "Skipping update for $($user.DisplayName)"
                         throw "Update skipped for $($user.DisplayName). Test failed."
                     }
                     elseif ($selectedPostalCode -in $validPostalCode) {
                         Update-MgUser -UserId $user.Id -PostalCode $selectedPostalCode
-                        Write-Host "Updated the postal code of $($user.DisplayName) to $selectedPostalCode"
+                        Write-PSFMessage -Level Output -Message "Updated the postal code of $($user.DisplayName) to $selectedPostalCode"
                     }
                     else {
                         throw "Invalid postal code selected. Test failed."
@@ -435,12 +467,12 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
                 if (![string]::IsNullOrEmpty($user.Id)) {
                     $selectedCountry = Read-Host "The country of $($user.DisplayName) is not valid. Please enter a valid country from the list: $($validCountry -join ', '), or just press ENTER to skip this update"
                     if ([string]::IsNullOrEmpty($selectedCountry) -or $selectedCountry -eq 'SKIP') {
-                        Write-Host "Skipping update for $($user.DisplayName)"
+                        Write-PSFMessage -Level Output -Message "Skipping update for $($user.DisplayName)"
                         throw "Update skipped for $($user.DisplayName). Test failed."
                     }
                     elseif ($selectedCountry -in $validCountry) {
                         Update-MgUser -UserId $user.Id -Country $selectedCountry
-                        Write-Host "Updated the country of $($user.DisplayName) to $selectedCountry"
+                        Write-PSFMessage -Level Output -Message "Updated the country of $($user.DisplayName) to $selectedCountry"
                     }
                     else {
                         throw "Invalid country selected. Test failed."
@@ -464,12 +496,12 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
                 if (![string]::IsNullOrEmpty($user.Id)) {
                     $selectedDepartment = Read-Host "The department of $($user.DisplayName) is not valid. Please enter a valid department from the list: $($validDepartments -join ', '), or just press ENTER to skip this update"
                     if ([string]::IsNullOrEmpty($selectedDepartment) -or $selectedDepartment -eq 'SKIP') {
-                        Write-Host "Skipping update for $($user.DisplayName)"
+                        Write-PSFMessage -Level Output -Message "Skipping update for $($user.DisplayName)"
                         throw "Update skipped for $($user.DisplayName). Test failed."
                     }
                     elseif ($selectedDepartment -in $validDepartments) {
                         Update-MgUser -UserId $user.Id -Department $selectedDepartment
-                        Write-Host "Updated the department of $($user.DisplayName) to $selectedDepartment"
+                        Write-PSFMessage -Level Output -Message "Updated the department of $($user.DisplayName) to $selectedDepartment"
                     }
                     else {
                         throw "Invalid department selected. Test failed."
@@ -493,12 +525,12 @@ Describe "Validating Custom User Standards" -Tag "Entra", "Users", "All", "Custo
                 if (![string]::IsNullOrEmpty($user.Id)) {
                     $selectedJobTitle = Read-Host "The job title of $($user.DisplayName) is not valid. Please enter a valid job title from the list: $($validJobTitles -join ', '), or just press ENTER to skip this update"
                     if ([string]::IsNullOrEmpty($selectedJobTitle) -or $selectedJobTitle -eq 'SKIP') {
-                        Write-Host "Skipping update for $($user.DisplayName)"
+                        Write-PSFMessage -Level Output -Message "Skipping update for $($user.DisplayName)"
                         throw "Update skipped for $($user.DisplayName). Test failed."
                     }
                     elseif ($selectedJobTitle -in $validJobTitles) {
                         Update-MgUser -UserId $user.Id -JobTitle $selectedJobTitle
-                        Write-Host "Updated the job title of $($user.DisplayName) to $selectedJobTitle"
+                        Write-PSFMessage -Level Output -Message "Updated the job title of $($user.DisplayName) to $selectedJobTitle"
                     }
                     else {
                         throw "Invalid job title selected. Test failed."

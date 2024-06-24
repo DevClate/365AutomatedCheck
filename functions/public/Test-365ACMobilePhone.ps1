@@ -1,40 +1,40 @@
 <#
 .SYNOPSIS
-    This function tests whether users have a mobile phone number associated with their account.
+    Tests whether users in Microsoft 365 have a valid mobile phone number.
 
 .DESCRIPTION
-    The Test-365ACMobilePhone function tests whether users have a mobile phone number associated with their account. It retrieves a list of users and checks if each user has a mobile phone number. The function outputs the results in the form of a custom object with the user's display name and a boolean value indicating whether they have a mobile phone.
+    The Test-365ACMobilePhone function checks if users in Microsoft 365 have a mobile phone number and optionally validates these numbers against a provided list of valid numbers. It supports outputting the results to an Excel file, an HTML file, or the console.
 
 .PARAMETER Users
-    Specifies an array of users to test. If not provided, the function retrieves all users in Microsoft 365.
+    Specifies an array of users to test. If not provided, the function retrieves all users in Microsoft 365 with their DisplayName and MobilePhone properties.
 
 .PARAMETER ValidationExcelFilePath
-    Specifies the path to an Excel file containing a list of valid mobile phone numbers. If this parameter is provided, the function will validate the mobile phone numbers of the users against this list.
-    
+    Specifies the path to an Excel file containing a list of valid mobile phone numbers. If provided, the function validates the users' mobile phone numbers against this list.
+
 .PARAMETER OutputExcelFilePath
-    Specifies the path to an Excel file where the results will be exported. If this parameter is provided, the function requires the ImportExcel module to be installed.
+    Specifies the path to an Excel file where the results will be exported. Requires the ImportExcel module.
 
 .PARAMETER HtmlFilePath
-    Specifies the path to an HTML file where the results will be exported. If this parameter is provided, the function requires the Export-365ACResultToHtml function to be available.
+    Specifies the path to an HTML file where the results will be exported. Requires the Export-365ACResultToHtml function to be defined.
 
 .PARAMETER TestedProperty
-    Specifies the property that is being tested. Default is 'Has MobilePhone'.
+    Specifies the property that is being tested. Defaults to 'Has Valid Mobile Phone' when validating against a list, otherwise 'Has Mobile Phone'.
 
 .EXAMPLE
     Test-365ACMobilePhone -Users (Get-MgUser -All) -OutputExcelFilePath "C:\Results.xlsx"
-    Retrieves all users in Microsoft 365 and exports the results to an Excel file located at "C:\Results.xlsx".
+    Retrieves all users in Microsoft 365 and exports the validation results to an Excel file.
 
 .EXAMPLE
     Test-365ACMobilePhone -Users (Get-MgUser -All) -HtmlFilePath "C:\Results.html"
-    Retrieves all users in Microsoft 365 and exports the results to an HTML file located at "C:\Results.html".
+    Retrieves all users in Microsoft 365 and exports the validation results to an HTML file.
 
 .EXAMPLE
     Test-365ACMobilePhone -Users (Get-MgUser -All)
-    Retrieves all users in Microsoft 365 and outputs the results to the console.
+    Retrieves all users in Microsoft 365 and outputs the validation results to the console.
 
 .NOTES
-    - This function requires the ImportExcel module to export results to Excel. If the module is not installed, an error will be displayed.
-    - The Export-365ACResultToExcel and Export-365ACResultToHtml functions are assumed to be defined elsewhere in the script.
+    - Requires the ImportExcel module for exporting results to Excel. If not installed, an error will be displayed.
+    - The Export-365ACResultToExcel and Export-365ACResultToHtml functions must be defined for exporting results to Excel or HTML, respectively.
 
 .LINK
     https://github.com/DevClate/365AutomatedCheck
@@ -60,7 +60,7 @@ function Test-365ACMobilePhone {
         $validMobilePhones = @()
         if ($ValidationExcelFilePath) {
             if (!(Get-Command Import-Excel -ErrorAction SilentlyContinue)) {
-                Write-Error "Import-Excel cmdlet not found. Please install the ImportExcel module."
+                Stop-PSFFunction -Message "Import-Excel cmdlet not found. Please install the ImportExcel module." -ErrorRecord $_ -Tag 'MissingModule'
                 return
             }
             # Import the Excel file to get valid mobile phone numbers
@@ -91,7 +91,7 @@ function Test-365ACMobilePhone {
         } elseif ($HtmlFilePath) {
             Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         } else {
-            Write-Output $results
+            Write-PSFMessage -Level Output -Message ($results | Out-String)
         }
     }
 }

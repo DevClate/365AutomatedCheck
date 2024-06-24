@@ -1,40 +1,40 @@
 <#
 .SYNOPSIS
-    This function tests whether users have a fax number and exports the results to Excel, HTML, or the console.
+    Tests whether users in Microsoft 365 have a fax number assigned and exports the results.
 
 .DESCRIPTION
-    The Test-365ACFaxNumber function tests whether users have a fax number by checking the FaxNumber property of each user. It accepts an array of users as input and outputs the results as a custom object with the user's display name and a boolean value indicating whether they have a fax number.
+    The Test-365ACFaxNumber function checks if users in Microsoft 365 have a fax number by examining the FaxNumber property. It can validate fax numbers against a provided list of valid numbers. The results can be exported to Excel, HTML, or output to the console.
 
 .PARAMETER Users
-    Specifies the array of users to test. If not provided, it retrieves all users using the Get-MgUser cmdlet.
+    Specifies an array of users to test. If not provided, the function retrieves all users in Microsoft 365.
 
 .PARAMETER ValidationExcelFilePath
-    Specifies the path to an Excel file containing a list of valid fax numbers. If this parameter is provided, the function will validate the fax numbers of the users against this list.
+    Specifies the path to an Excel file containing a list of valid fax numbers. If provided, the function validates the users' fax numbers against this list.
 
 .PARAMETER OutputExcelFilePath
-    Specifies the path to export the results as an Excel file. If this parameter is provided, the Export-365ACResultToExcel function is called to export the results.
+    Specifies the path to export the results to an Excel file. If specified, the function exports the results using the Export-365ACResultToExcel function.
 
 .PARAMETER HtmlFilePath
-    Specifies the path to export the results as an HTML file. If this parameter is provided, the Export-365ACResultToHtml function is called to export the results.
+    Specifies the path to export the results to an HTML file. If specified, the function exports the results using the Export-365ACResultToHtml function.
 
 .PARAMETER TestedProperty
-    Specifies the property that is being tested. Default is 'Has Fax Number'.
+    Specifies the property being tested. Defaults to 'Has Fax Number' but changes to 'Has Valid Fax Number' if a validation list is provided.
 
 .EXAMPLE
-    Test-365ACFaxNumber -Users $users -OutputExcelFilePath "C:\Results.xlsx"
-    Tests the specified users for fax numbers and exports the results to an Excel file.
+    Test-365ACFaxNumber -Users (Get-MgUser -All) -OutputExcelFilePath "C:\Results.xlsx"
+    Tests all users for a fax number and exports the results to an Excel file.
 
 .EXAMPLE
-    Test-365ACFaxNumber -HtmlFilePath "C:\Results.html"
-    Tests all users for fax numbers and exports the results to an HTML file.
+    Test-365ACFaxNumber -Users $users -HtmlFilePath "C:\Results.html"
+    Tests the specified users for a fax number and exports the results to an HTML file.
 
 .NOTES
-    - This function requires the ImportExcel module to export results to Excel. If the module is not installed, an error will be displayed.
+    - Requires the ImportExcel module for exporting results to Excel. If not installed, an error will be displayed.
+    - The Export-365ACResultToExcel and Export-365ACResultToHtml functions must be defined for exporting results.
 
 .LINK
     https://github.com/DevClate/365AutomatedCheck
 #>
-
 Function Test-365ACFaxNumber {
     [CmdletBinding()]
     param
@@ -57,7 +57,7 @@ Function Test-365ACFaxNumber {
         $validFaxNumbers = @()
         if ($ValidationExcelFilePath) {
             if (!(Get-Command Import-Excel -ErrorAction SilentlyContinue)) {
-                Write-Error "Import-Excel cmdlet not found. Please install the ImportExcel module."
+                Stop-PSFFunction -Message "Import-Excel cmdlet not found. Please install the ImportExcel module." -ErrorRecord $_ -Tag 'MissingModule'
                 return
             }
             # Import the Excel file to get valid fax numbers
@@ -90,7 +90,7 @@ Function Test-365ACFaxNumber {
             Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
         else {
-            Write-Output $results
+            Write-PSFMessage -Level Output -Message ($results | Out-String)
         }
     }
 }

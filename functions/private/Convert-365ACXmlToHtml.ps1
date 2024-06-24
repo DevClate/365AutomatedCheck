@@ -32,7 +32,7 @@ function Convert-365ACXmlToHtml {
     )
 
     if (Test-Path -Path $XmlPath) {
-        Write-Host "XML file generated: $XmlPath"
+        Write-PSFMessage -Level Host -Message "XML file generated: $XmlPath"
 
         $xslt = New-Object System.Xml.Xsl.XslCompiledTransform
         $xslt.Load($XsltPath)
@@ -44,8 +44,8 @@ function Convert-365ACXmlToHtml {
         $xslt.Transform($xml, $null, $writer)
 
         $writer.ToString() | Out-File $OutputHtmlPath
-        Write-Host "HTML report generated: $OutputHtmlPath"
+        Write-PSFMessage -Level Host -Message "HTML report generated: $OutputHtmlPath"
     } else {
-        Write-Error "The XML file '$XmlPath' does not exist."
+        Write-PSFMessage -Level Warning -Message "The XML file '$XmlPath' does not exist."
     }
 }

@@ -1,33 +1,39 @@
 <#
 .SYNOPSIS
-    Tests whether users have a company name and optionally validates it against a list of valid company names.
+    Tests whether users in Microsoft 365 have a company name assigned and optionally validates against a list of valid company names.
 
 .DESCRIPTION
-    The Test-365ACCompanyName function tests whether users have a company name and optionally validates it against a list of valid company names. It generates a report of the test results, which can be exported to an Excel file or an HTML file.
+    The Test-365ACCompanyName function checks if users in Microsoft 365 have a company name assigned to their profile. It can also validate these company names against a provided list of valid company names. The results of this test can be exported to an Excel file, an HTML file, or displayed in the console.
 
 .PARAMETER Users
-    Specifies the users to be tested. If not specified, all users in the organization will be tested.
+    Specifies the users to be tested. If not specified, the function will test all users in the organization by retrieving their DisplayName and CompanyName properties.
 
 .PARAMETER ValidationExcelFilePath
     Specifies the path to an Excel file containing a list of valid company names. If specified, the function will validate the company names of the users against this list.
 
 .PARAMETER OutputExcelFilePath
-    Specifies the path to save the test results as an Excel file. If not specified, the test results will be displayed in the console.
+    Specifies the path to save the test results as an Excel file. If not specified, the test results will be displayed in the console. The path must end with '.xlsx'.
 
 .PARAMETER HtmlFilePath
-    Specifies the path to save the test results as an HTML file. If not specified, the test results will be displayed in the console.
+    Specifies the path to save the test results as an HTML file. If not specified, the test results will be displayed in the console. The path must end with '.html'.
 
 .PARAMETER TestedProperty
-    Specifies the name of the tested property. This will be used as the column name in the test results.
+    Specifies the name of the tested property. This will be used as the column name in the test results. Defaults to 'Has Company Name' but changes to 'Has Valid Company Name' if a validation list is provided.
 
 .EXAMPLE
-    Test-365ACCompanyName -Users (Get-MgUser -All) -ValidationExcelFilePath "C:\Validation.xlsx" -OutputExcelFilePath "C:\Results.xlsx" -TestedProperty "Has Valid Company Name"
-    Tests all users in the organization, validates their company names against the list of valid company names in the "Validation.xlsx" file, and saves the test results to the "Results.xlsx" file.
+    Test-365ACCompanyName -Users (Get-MgUser -All) -ValidationExcelFilePath "C:\Validation.xlsx" -OutputExcelFilePath "C:\Results.xlsx"
+    Tests all users in the organization, validates their company names against the list of valid company names in "Validation.xlsx", and saves the test results to "Results.xlsx".
 
 .EXAMPLE
-    Test-365ACCompanyName -Users (Get-MgUser -All) -HtmlFilePath "C:\Results.html" -TestedProperty "Has Company Name"
+    Test-365ACCompanyName -Users (Get-MgUser -All) -HtmlFilePath "C:\Results.html"
     Tests all users in the organization and saves the test results as an HTML file named "Results.html".
 
+.NOTES
+    Requires the ImportExcel module for exporting results to Excel. If not installed, an error will be displayed.
+    The Export-365ACResultToExcel and Export-365ACResultToHtml functions must be defined for exporting results to Excel or HTML, respectively.
+
+.LINK
+    https://github.com/DevClate/365AutomatedCheck
 #>
 Function Test-365ACCompanyName {
     [CmdletBinding()]
@@ -52,7 +58,7 @@ Function Test-365ACCompanyName {
         $validCompanyNames = @()
         if ($ValidationExcelFilePath) {
             if (!(Get-Command Import-Excel -ErrorAction SilentlyContinue)) {
-                Write-Error "Import-Excel cmdlet not found. Please install the ImportExcel module."
+                Stop-PSFFunction -Message "Import-Excel cmdlet not found. Please install the ImportExcel module." -ErrorRecord $_ -Tag 'MissingModule'
                 return@
             }
             # Import the Excel file to get valid company names
@@ -85,7 +91,7 @@ Function Test-365ACCompanyName {
             Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
         else {
-            Write-Output $results
+            Write-PSFMessage -Level Output -Message ($results | Out-String)
         }
     }
 }

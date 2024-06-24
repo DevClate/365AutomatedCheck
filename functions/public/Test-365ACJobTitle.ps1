@@ -1,36 +1,36 @@
 <#
 .SYNOPSIS
-    This function tests if users have a job title assigned and exports the results to Excel, HTML, or the console.
+    Tests if users have a job title assigned and exports the results.
 
 .DESCRIPTION
-    The Test-365ACJobTitle function tests if users have a job title assigned. It takes an array of users as input and checks if each user has a job title. The function returns a collection of results indicating whether each user has a job title or not.
+    The Test-365ACJobTitle function checks if users in Microsoft 365 have a job title assigned. It can validate job titles against a list of valid titles if provided. The results can be exported to Excel, HTML, or output to the console.
 
 .PARAMETER Users
-    Specifies the array of users to test. If not provided, all users will be tested.
+    Specifies an array of users to test. If not provided, the function tests all users in Microsoft 365.
 
 .PARAMETER ValidationExcelFilePath
-    Specifies the path to an Excel file containing a list of valid job titles. If this parameter is specified, the function will validate the job titles of the users against this list.
-    
+    Specifies the path to an Excel file containing a list of valid job titles. If provided, the function validates each user's job title against this list.
+
 .PARAMETER OutputExcelFilePath
-    Specifies the path to export the results to an Excel file. If this parameter is specified, the function will use the Export-365ACResultToExcel function to export the results.
+    Specifies the path to export the results to an Excel file. If specified, the function exports the results using the Export-365ACResultToExcel function.
 
 .PARAMETER HtmlFilePath
-    Specifies the path to export the results to an HTML file. If this parameter is specified, the function will use the Export-365ACResultToHtml function to export the results.
+    Specifies the path to export the results to an HTML file. If specified, the function exports the results using the Export-365ACResultToHtml function.
 
 .PARAMETER TestedProperty
-    Specifies the property that is being tested. Default is 'Has Job Title'.
+    Specifies the property being tested. Defaults to 'Has Job Title'.
 
 .EXAMPLE
     Test-365ACJobTitle -Users (Get-MgUser -All) -OutputExcelFilePath "C:\Results.xlsx"
-    Tests all users and exports the results to an Excel file located at "C:\Results.xlsx".
+    Tests all users for a job title and exports the results to an Excel file.
 
 .EXAMPLE
     Test-365ACJobTitle -Users $users -HtmlFilePath "C:\Results.html"
-    Tests the specified users and exports the results to an HTML file located at "C:\Results.html".
+    Tests the specified users for a job title and exports the results to an HTML file.
 
 .NOTES
-    - This function requires the ImportExcel module to export results to Excel. If the module is not installed, an error will be displayed.
-    - The Export-365ACResultToExcel and Export-365ACResultToHtml functions are assumed to be defined elsewhere in the script.
+    - Requires the ImportExcel module for exporting results to Excel. If not installed, an error will be displayed.
+    - The Export-365ACResultToExcel and Export-365ACResultToHtml functions must be defined for exporting results.
 
 .LINK
     https://github.com/DevClate/365AutomatedCheck
@@ -56,7 +56,7 @@ function Test-365ACJobTitle {
         $validJobTitles = @()
         if ($ValidationExcelFilePath) {
             if (!(Get-Command Import-Excel -ErrorAction SilentlyContinue)) {
-                Write-Error "Import-Excel cmdlet not found. Please install the ImportExcel module."
+                Stop-PSFFunction -Message "Import-Excel cmdlet not found. Please install the ImportExcel module." -ErrorRecord $_ -Tag 'MissingModule'
                 return
             }
             # Import the Excel file to get valid job titles
@@ -87,7 +87,7 @@ function Test-365ACJobTitle {
         } elseif ($HtmlFilePath) {
             Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         } else {
-            Write-Output $results
+            Write-PSFMessage -Level Output -Message ($results | Out-String)
         }
     }
 }
