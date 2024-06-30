@@ -43,9 +43,17 @@ function Convert-365ACXmlToHtml {
         $writer = New-Object System.IO.StringWriter
         $xslt.Transform($xml, $null, $writer)
 
+        # Ensure the directory for $OutputHtmlPath exists
+        $directoryPath = [System.IO.Path]::GetDirectoryName($OutputHtmlPath)
+        if (-not (Test-Path -Path $directoryPath)) {
+            $null = New-Item -ItemType Directory -Path $directoryPath -Force
+            Write-Output "New folder path created: $directoryPath"
+        }
+
         $writer.ToString() | Out-File $OutputHtmlPath
         Write-PSFMessage -Level Host -Message "HTML report generated: $OutputHtmlPath"
-    } else {
+    }
+    else {
         Write-PSFMessage -Level Warning -Message "The XML file '$XmlPath' does not exist."
     }
 }

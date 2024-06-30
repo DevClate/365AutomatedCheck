@@ -42,7 +42,7 @@ param (
     [bool] $NoExcel = [bool]::Parse($env:NoExcel)
 )
 
-#Requires -Module Pester, ImportExcel, Microsoft.Graph.Identity.DirectoryManagement
+#Requires -Module Pester, ImportExcel, Microsoft.Graph.Identity.DirectoryManagement, PSFramework
 
 $properties = @(
     'UserPrincipalName',
@@ -79,7 +79,7 @@ BeforeAll {
 
     if ($NoExcel) {
         Write-PSFMessage -Level Output -Message "Skipping Excel file loading due to NoExcel parameter."
-        return # Exit the block early
+        return #
     }
     else {
         if (-not [string]::IsNullOrEmpty($ExcelFilePath) -and (Test-Path -Path $ExcelFilePath)) {
@@ -96,12 +96,11 @@ BeforeAll {
                         $_.Value = "NA" # Replace with your desired default value
                     }
                 }
-                $_ # Output the modified row
+                $_ # Output the modified object
             }
         }
         catch {
             Write-PSFMessage -Level Warning -Message "Error importing Excel file: $($_.Exception.Message). Using default Excel file path: $defaultPath"
-            # Consider attempting to re-import using the default path here
         }
     }
 }
@@ -150,30 +149,30 @@ Describe "Validating User Fields" -Tag "Entra", "Users", "All" {
         }
     }
 
-    Context "Street Address" -Tag "Basic" -ForEach @( $Users ) {
+    Context "Street Address" -Tag "Basic", "Location" -ForEach @( $Users ) {
         It "User $($_.DisplayName) should have a Street Address" {
             $_.StreetAddress | Should -BeTrue -Because "Street Address is required for all users"
         }
     }
 
-    Context "City" -Tag "Basic"  -ForEach @( $Users ) {
+    Context "City" -Tag "Basic", "Location"  -ForEach @( $Users ) {
         It "User $($_.DisplayName) should have a City" {
             $_.city | Should -BeTrue -Because "City is required for all users"
         }
     }
 
-    Context "State" -Tag "Basic"  -ForEach @( $Users ) {
+    Context "State" -Tag "Basic", "Location"  -ForEach @( $Users ) {
         It "User $($_.DisplayName) should have a State" {
             $_.State | Should -BeTrue -Because "State is required for all users"
         }
     }
 
-    Context "Postal Code" -Tag "Basic" -ForEach @( $Users ) {
+    Context "Postal Code" -Tag "Basic", "Location" -ForEach @( $Users ) {
         It "User $($_.DisplayName) should have a Postal Code" {
             $_.PostalCode | Should -BeTrue -Because "Postal Code is required for all users"
         }
     }
-    Context "Country" -Tag "Basic" -ForEach @( $Users ) {
+    Context "Country" -Tag "Basic", "Location" -ForEach @( $Users ) {
         It "User $($_.DisplayName) should have a Country" {
             $_.Country | Should -BeTrue -Because "Country is required for all users"
         }

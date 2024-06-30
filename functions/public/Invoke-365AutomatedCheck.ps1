@@ -62,6 +62,7 @@ function Invoke-365AutomatedCheck {
         
         [string] $Path = (Join-Path -Path $RootPath -ChildPath "tests"),
         
+        [ValidatePattern(".*\.html$")]
         [string] $OutputHtmlPath,
         
         [bool] $PassThru = $false,
@@ -76,6 +77,11 @@ function Invoke-365AutomatedCheck {
     )
 
     #Requires -Module Pester, ImportExcel
+
+    if (-not $XmlPath -and $OutputHtmlPath) {
+        # Change the extension of $OutputHtmlPath to .xml and assign it to $XmlPath
+        $XmlPath = [System.IO.Path]::ChangeExtension($OutputHtmlPath, '.xml')
+    }
 
     $XmlPath = Set-365ACDefaultOutputPath -Path $XmlPath -DefaultPath '365ACReport.xml'
     Write-PSFMessage -Level Host -Message "Using XML Path: $XmlPath"
