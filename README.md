@@ -20,6 +20,10 @@ This is a community open source project and welcome PRs and feedback.
 ```powershell
 Install-Module -Name 365AutomatedCheck -Scope CurrentUser
 ```
+### Customize Validation Parameters
+
+Copy or update Excel workbook located at Assets/365ValidationParameters.xlsx to your company standards
+Note: If you move the location of the file or rename it, you'll use that path when running Invoke-365AutomatedCheck
 
 Example: Runs everything with Excel Validation
 Invoke-365AutomatedCheck
