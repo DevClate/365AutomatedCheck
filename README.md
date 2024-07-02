@@ -20,10 +20,10 @@ This is a community open source project and welcome PRs and feedback.
 ```powershell
 Install-Module -Name 365AutomatedCheck -Scope CurrentUser
 ```
+
 ### Customize Validation Parameters
 
-Copy or update Excel workbook located at Assets/365ValidationParameters.xlsx to your company standards
-Note: If you move the location of the file or rename it, you'll use that path when running Invoke-365AutomatedCheck
+>Copy or update Excel workbook located at Assets/365ValidationParameters.xlsx to your company standards
 
 Example: Runs everything with Excel Validation
 Invoke-365AutomatedCheck
@@ -33,6 +33,4 @@ Invoke-365AutomatedCheck -ExcludeTag "CompanyStandard"
 
 Notes:
 
-- Add your default values to the Excel workbook in Assets 365ValidationParameters.xlsx
-  - or copy workbook to another location and fill in your standards
 - When validating with Excel it with have an option for NA, that is for right now as I couldn't get it to remove empty options without doing that.
