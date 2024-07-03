@@ -10,6 +10,8 @@
     - [Running Tests](#running-tests)
   - [Examples](#examples)
 
+To view entire changelog [click here](changelog.md)
+
 ## Key Features
 
 - Find and fix non compliant fields in Microsoft 365
