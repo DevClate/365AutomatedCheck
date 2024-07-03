@@ -1,6 +1,6 @@
 # 365AutomatedCheck
 
-365 Automated Checking tool to find non company standards
+365AutomatedCheck is a tool to find non company standards using Pester tests and regular functions depending on your needs.
 
 ## Key Features
 
@@ -23,16 +23,56 @@ Install-Module -Name 365AutomatedCheck -Scope CurrentUser
 
 ### Customize Validation Parameters
 
-Copy or update Excel workbook located at Assets/365ValidationParameters.xlsx to your company standards
+Copy or update Excel workbook located at Assets/365ValidationParameters.xlsx to your company standards.
 
->Note: If you move the location of the file or rename it, you'll use that path when running Invoke-365AutomatedCheck
+>Note: If you move the location of the file or rename it, you'll use that path when running Invoke-365AutomatedCheck (Invoke-365AutomatedCheck -ExcelFilePath "/Users/demo/Desktop/365ValidationParameters.xlsx")
 
-Example: Runs everything with Excel Validation
+>Note: If you have any empty values in a column, you will see "NA" as an option when updating for now. Working on a way so that isn't needed
+
+### Running Tests
+
+If you have configured your Excel workbook run:
+
+```powershell
+# If you haven't connected to graph do so now: Connect-MgGraph
 Invoke-365AutomatedCheck
+```
 
-Example: Check to see if all fields are filled out without using company standard Excel:
-Invoke-365AutomatedCheck -ExcludeTag "CompanyStandard"
+If you haven't configured your Excel workbook run:
 
-Notes:
+```powershell
+# If you haven't connected to graph do so now: Connect-MgGraph
+Invoke-365AutomatedCheck -Tag Basic,SignIns -NoExcel $true
+```
 
-- When validating with Excel it with have an option for NA, that is for right now as I couldn't get it to remove empty options without doing that.
+## Examples
+
+Example 1: Check to see if all fields are filled out without using company standard Excel:
+
+```powershell
+Invoke-365AutomatedCheck -ExcludeTag "CompanyStandard" -NoExcel $true
+```
+
+Example 2: Change the Export path of html report
+
+```powershell
+invoke-365automatedcheck -OutputHtmlPath "/Users/Demo/Desktop/365Reports/testreport.html"
+```
+
+Example 3: Check Users last login
+
+```powershell
+Invoke-365AutomatedCheck -Tag SignIns -NoExcel $true
+```
+
+Example 4: Run tests to see in terminal with Excel validation in default path
+
+```powershell
+Invoke-365AutomatedCheck -Verbosity "normal"
+```
+
+Example 5: Run “Communication” tests to test if identities have a mobile phone, business phone, and fax number
+
+```powershell
+Invoke-365AutomatedCheck -tag "communication" -NoExcel $true
+```
