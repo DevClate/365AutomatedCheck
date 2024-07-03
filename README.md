@@ -2,6 +2,14 @@
 
 365AutomatedCheck is a tool to find non company standards using Pester tests and regular functions depending on your needs.
 
+- [365AutomatedCheck](#365automatedcheck)
+  - [Key Features](#key-features)
+  - [Getting Started](#getting-started)
+    - [Installation](#installation)
+    - [Customize Validation Parameters](#customize-validation-parameters)
+    - [Running Tests](#running-tests)
+  - [Examples](#examples)
+
 ## Key Features
 
 - Find and fix non compliant fields in Microsoft 365
