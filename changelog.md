@@ -1,3 +1,13 @@
+### 0.0.7
+
+**Brief Summary**
+
+Added changelog
+
+**Updated Features**
+
+Added changelog for easier tracking of updates
+
 ### 0.0.6
 
 **Brief Summary**
@@ -19,3 +29,4 @@ Added/Updated Help to all functions
 **Fixed**
 
 * Exporting HTML files to custom location
+
