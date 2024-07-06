@@ -35,15 +35,16 @@ Install-Module -Name 365AutomatedCheck -Scope CurrentUser
 
 Copy or update Excel workbook located at Assets/365ValidationParameters.xlsx to your company standards.
 
->Note: If you move the location of the file or rename it, you'll use that path when running Invoke-365AutomatedCheck (Invoke-365AutomatedCheck -ExcelFilePath "/Users/demo/Desktop/365ValidationParameters.xlsx")
+> Note: If you move the location of the file or rename it, you'll use that path when running Invoke-365AutomatedCheck (Invoke-365AutomatedCheck -ExcelFilePath "/Users/demo/Desktop/365ValidationParameters.xlsx")
 
->Note: If you have any empty values in a column, you will see "NA" as an option when updating for now. Working on a way so that isn't needed
+> Note: If you have any empty values in a column, you will see "NA" as an option when updating for now. Working on a way so that isn't needed
 
 ### Running Tests
 
 If you have configured your Excel workbook run:
 
 ```powershell
+# This will export report to current directory /365ACReports/currentdate-currenttime
 # If you haven't connected to graph do so now: Connect-MgGraph
 Invoke-365AutomatedCheck
 ```
@@ -51,6 +52,7 @@ Invoke-365AutomatedCheck
 If you haven't configured your Excel workbook run:
 
 ```powershell
+# This will export report to current directory /365ACReports/currentdate-currenttime
 # If you haven't connected to graph do so now: Connect-MgGraph
 Invoke-365AutomatedCheck -Tag Basic,SignIns -NoExcel $true
 ```
