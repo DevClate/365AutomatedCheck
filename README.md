@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/images/365AC-GHLogov2.png" alt="365AutomatedCheck Logo" width="300" height="300">
+  <img src="assets/images/365AC-GHLogov2nf.png" alt="365AutomatedCheck Logo" width="300" height="300">
 </div>
 
 # 365AutomatedCheck
