@@ -1,6 +1,6 @@
-# 365AutomatedCheck
-
 ![365AutomatedCheck Logo](assets/images/365AC-GHLogo.png)
+
+# 365AutomatedCheck
 
 365AutomatedCheck is a tool to find non company standards using Pester tests and regular functions depending on your needs.
 
