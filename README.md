@@ -9,6 +9,8 @@
     - [Customize Validation Parameters](#customize-validation-parameters)
     - [Running Tests](#running-tests)
   - [Examples](#examples)
+  - [Regular Functions](#regular-functions)
+  - [Screenshots](#screenshots)
 
 To view entire changelog [click here](changelog.md)
 
@@ -88,3 +90,21 @@ Example 5: Run “Communication” tests to test if identities have a mobile pho
 ```powershell
 Invoke-365AutomatedCheck -tag "communication" -NoExcel $true
 ```
+
+## Regular Functions
+
+The regular functions are there for another way to test. They also will export to Terminal, HTML, or Excel. There will be more added in the future. Please let us know if you feel they are a benefit.
+
+## Screenshots
+
+View of successful tests:
+![View of how successful test looks](assets/images/ghsuccessview.png)
+
+View of failed tests:
+![View of how failed test looks](assets/images/ghfailedview.png)
+
+View of skipping test:
+![View of how skipping a record looks](assets/images/ghskipview.png)
+
+View of updating test:
+![View of how updated record looks](assets/images/ghupdateview.png)
