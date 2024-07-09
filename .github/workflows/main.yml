@@ -1,0 +1,19 @@
+name: Publish to PowerShell Gallery
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  publish-to-gallery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and publish
+        env:
+          NUGET_KEY: ${{ secrets.PSGALLERYAPI }}
+        shell: pwsh
+        run: |
+          Set-PSRepository psgallery -InstallationPolicy trusted
+          Install-Module ImportExcel, ExchangeOnlineManagement, Microsoft.Graph.Users, Microsoft.Graph.Groups, Microsoft.Graph.Identity.DirectoryManagement, Microsoft.Graph.Users.Actions, PSFramework, Microsoft.Identity.Client -confirm:$false -force
+          Publish-Module -Path ./ -NuGetApiKey $env:NUGET_KEY -Verbose
