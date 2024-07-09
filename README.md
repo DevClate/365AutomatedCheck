@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/images/365AC-GHLogov2nf.png" alt="365AutomatedCheck Logo" width="300" height="300">
+  <img src="assets/images/365AutomatedCheckCircle-200x200.png" alt="365AutomatedCheck Logo" width="300" height="300">
 </div>
 
 # 365AutomatedCheck
@@ -9,6 +9,7 @@
 - [365AutomatedCheck](#365automatedcheck)
   - [Key Features](#key-features)
   - [Getting Started](#getting-started)
+    - [Requirements](#requirements)
     - [Installation](#installation)
     - [Customize Validation Parameters](#customize-validation-parameters)
     - [Running Tests](#running-tests)
@@ -30,6 +31,18 @@ The purpose of this module is two-fold, one, it is to make sure all users have c
 This is a community open source project and welcome PRs and feedback.
 
 ## Getting Started
+
+### Requirements
+
+- Pester 5
+- ImportExcel
+- ExchangeOnlineManagement
+- Microsoft.Graph.Users
+- Microsoft.Graph.Groups
+- Microsoft.Graph.Identity.DirectoryManagement
+- Microsoft.Graph.Users.Actions
+- PSFramework
+
 
 ### Installation
 
