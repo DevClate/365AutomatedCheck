@@ -12,7 +12,7 @@
 RootModule = '365AutomatedCheck.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.7'
+ModuleVersion = '0.0.8'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Core'
@@ -116,19 +116,19 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('Office365', 'Automation', 'MSGraph', 'Cloud', 'Teams', 'Configuration', 'Excel', 'Exchange', 'MacOS', 'Windows', 'PSEdition_Core')
 
         # A URL to the license for this module.
         # LicenseUri = ''
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/DevClate/365AutomatedCheck'
 
         # A URL to an icon representing this module.
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = 'https://github.com/DevClate/365AutomatedCheck/blob/main/changelog.md'
 
         # Prerelease string of this module
         # Prerelease = ''
