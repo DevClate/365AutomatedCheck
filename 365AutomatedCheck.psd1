@@ -12,7 +12,7 @@
 RootModule = '365AutomatedCheck.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.8'
+ModuleVersion = '0.0.9'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Core'
@@ -125,7 +125,7 @@ PrivateData = @{
         ProjectUri = 'https://github.com/DevClate/365AutomatedCheck'
 
         # A URL to an icon representing this module.
-        # IconUri = ''
+        IconUri = 'https://raw.githubusercontent.com/DevClate/365AutomatedCheck/main/assets/images/365AutomatedCheckCircle-200x200.png'
 
         # ReleaseNotes of this module
         ReleaseNotes = 'https://github.com/DevClate/365AutomatedCheck/blob/main/changelog.md'
