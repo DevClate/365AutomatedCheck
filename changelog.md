@@ -1,3 +1,22 @@
+### 0.0.9
+
+**Brief Summary**
+
+Added PowerShell Gallery icon
+
+### 0.0.8
+
+**Brief Summary**
+
+Tested push to PSGallery from Github and made PSD1 changes.
+
+Updates:
+
+Added
+
+* Module Tags
+* Module Changelog link
+
 ### 0.0.7
 
 **Brief Summary**
@@ -29,4 +48,3 @@ Added/Updated Help to all functions
 **Fixed**
 
 * Exporting HTML files to custom location
-
