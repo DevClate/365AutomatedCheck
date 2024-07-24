@@ -1,3 +1,25 @@
+
+
+### 0.0.10
+
+**Brief Summary**
+
+Added regular functions to check your environment
+
+**Updated Features**
+
+* Added regular test functions
+* Added Test-365ACCountry
+* Added Test-365ACStreetAddress
+* Added Test-365ACCity
+* Added Test-365ACState
+* Added Test-365ACPostalCode
+* Added Test-365ACMailNickName
+* Added Test-365ACAccountEnabled
+* Added Test-365ACEmployeeID
+* Added Test-365ACAddressBook
+* Adding Test-365ACLastLogin
+
 ### 0.0.9
 
 **Brief Summary**
