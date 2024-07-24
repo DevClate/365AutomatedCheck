@@ -12,7 +12,7 @@
 RootModule = '365AutomatedCheck.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.9'
+ModuleVersion = '0.0.10'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Core'
@@ -56,6 +56,7 @@ RequiredModules = @(
     @{ ModuleName='ExchangeOnlineManagement'; ModuleVersion='2.0.6' }
     @{ ModuleName='Microsoft.Graph.Users'; ModuleVersion='1.17.0' }
     @{ ModuleName='Microsoft.Graph.Groups'; ModuleVersion='1.17.0' }
+    @{ ModuleName='Microsoft.Graph.Beta.Users'; ModuleVersion='2.20.0' }
     @{ ModuleName='Microsoft.Graph.Identity.DirectoryManagement'; ModuleVersion='1.17.0' }
     @{ ModuleName='Microsoft.Graph.Users.Actions'; ModuleVersion='1.17.0' }
     @{ ModuleName='PSFramework'; ModuleVersion='1.8.289' }
@@ -89,7 +90,17 @@ FunctionsToExport = @(
     'Test-365ACJobTitle',
     'Convert-365ACXmlToHtml',
     'Get-365ACPesterConfiguration', 
-    'Set-365ACDefaultOutputPath'
+    'Set-365ACDefaultOutputPath',
+    'Test-365ACCountry',
+    'Test-365ACStreetAddress',
+    'Test-365ACCity',
+    'Test-365ACState',
+    'Test-365ACPostalCode',
+    'Test-365ACMailNickName',
+    'Test-365ACAccountEnabled',
+    'Test-365ACEmployeeID',
+    'Test-365ACAddressBook',
+    'Test-365ACLastLogin'
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
