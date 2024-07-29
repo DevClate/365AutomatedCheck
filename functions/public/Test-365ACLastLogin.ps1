@@ -37,7 +37,7 @@
     Tests the last login activity of users in the "contoso.onmicrosoft.com" tenant using app-only authentication with the specified client ID and certificate thumbprint. Users who have not logged in within the last 60 days will be considered inactive. The test results will be exported to an Excel file located at "C:\Reports\LastLoginReport.xlsx".
 
 .EXAMPLE
-    Test-365ACLastLogin -InteractiveLogin -Days 90 -HtmlFilePath "C:\Reports\LastLoginReport.html"
+    Test-365ACLastLogin -InteractiveLogin -Days 90 -OutputHtmlFilePath "C:\Reports\LastLoginReport.html"
     Tests the last login activity of users using interactive login. Users who have not logged in within the last 90 days will be considered inactive. The test results will be exported to an HTML file located at "C:\Reports\LastLoginReport.html".
 #>
 
@@ -50,8 +50,10 @@ Function Test-365ACLastLogin {
         
         [Parameter(Mandatory = $false)]
         [string]$ClientID,
+        
         [Parameter(Mandatory = $false)]
         [string]$CertificateThumbprint,
+        
         [Parameter(Mandatory = $false)]
         [string]$AccessToken,
         
@@ -66,7 +68,7 @@ Function Test-365ACLastLogin {
         [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
-        [string]$HtmlFilePath
+        [string]$OutputHtmlFilePath
     )
     BEGIN {
         if ($InteractiveLogin) {
@@ -119,8 +121,8 @@ Function Test-365ACLastLogin {
         if ($OutputExcelFilePath) {
             Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $TotalTests -PassedTests $PassedTests -FailedTests $FailedTests -TestedProperty $columnName
         }
-        elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $TotalTests -PassedTests $PassedTests -FailedTests $FailedTests -TestedProperty $columnName
+        elseif ($OutputHtmlFilePath) {
+            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $TotalTests -PassedTests $PassedTests -FailedTests $FailedTests -TestedProperty $columnName
         }
         else {
             Write-PSFMessage -Level Output -Message ($results | Out-String)

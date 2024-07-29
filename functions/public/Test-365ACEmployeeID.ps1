@@ -8,10 +8,25 @@ The Test-365ACEmployeeID function checks each user retrieved from Microsoft 365 
 .PARAMETER Users
 An array of users to be tested. This can be piped in or specified directly. Each user should have DisplayName and EmployeeId properties.
 
+.PARAMETER TenantID
+The ID of the tenant to connect to. Required if using app-only authentication.
+
+.PARAMETER ClientID
+The ID of the client to use for app-only authentication. Required if using app-only authentication.
+
+.PARAMETER CertificateThumbprint
+The thumbprint of the certificate to use for app-only authentication. Required if using app-only authentication.
+
+.PARAMETER AccessToken
+The access token to use for authentication. Required if using app-only authentication.
+
+.PARAMETER InteractiveLogin
+Specifies whether to use interactive login. If this switch is present, interactive login will be used. Otherwise, app-only authentication will be used.
+
 .PARAMETER OutputExcelFilePath
 The file path where the Excel report will be saved. The file must have an .xlsx extension.
 
-.PARAMETER HtmlFilePath
+.PARAMETER OutputHtmlFilePath
 The file path where the HTML report will be saved. The file must have an .html extension.
 
 .PARAMETER TestedProperty
@@ -24,7 +39,7 @@ Test-365ACEmployeeID -Users $users -OutputExcelFilePath "C:\Reports\EmployeeIDRe
 This example retrieves all users with their DisplayName and EmployeeId, then tests each user to see if they have an Employee ID assigned. The results are exported to an Excel file.
 
 .EXAMPLE
-Get-MgUser -All -Property DisplayName, EmployeeId | Select-Object DisplayName, EmployeeId | Test-365ACEmployeeID -HtmlFilePath "C:\Reports\EmployeeIDReport.html"
+Get-MgUser -All -Property DisplayName, EmployeeId | Select-Object DisplayName, EmployeeId | Test-365ACEmployeeID -OutputHtmlFilePath "C:\Reports\EmployeeIDReport.html"
 
 This example pipes a list of users directly into Test-365ACEmployeeID, which then checks if each user has an Employee ID assigned. The results are exported to an HTML file.
 
@@ -42,15 +57,39 @@ Function Test-365ACEmployeeID {
         [Parameter(ValueFromPipeline = $true)]
         [array]$Users = (Get-MgUser -All -Property DisplayName, EmployeeId | Select-Object DisplayName, EmployeeId),
         
+        [Parameter(Mandatory = $false)]
+        [string]$TenantID,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$ClientID,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$CertificateThumbprint,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$AccessToken,
+        
+        [Parameter(Mandatory = $false)]
+        [switch]$InteractiveLogin,
+
         [ValidatePattern('\.xlsx$')]
         [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
-        [string]$HtmlFilePath,
+        [string]$OutputHtmlFilePath,
         
         [string]$TestedProperty = 'Has Employee ID'
     )
     BEGIN {
+
+        if ($InteractiveLogin) {
+            Write-PSFMessage "Using interactive login..." -Level Host
+            Connect-MgGraph -Scopes "User.Read.All", "AuditLog.read.All"  -NoWelcome
+        }
+        else {
+            Write-PSFMessage "Using app-only authentication..." -Level Host
+            Connect-MgGraph -ClientId $ClientID -TenantId $TenantID -CertificateThumbprint $CertificateThumbprint -Scopes "User.Read.All", "AuditLog.Read.All"
+        }
         $results = @()
     }
     PROCESS {
@@ -70,8 +109,8 @@ Function Test-365ACEmployeeID {
         if ($OutputExcelFilePath) {
             Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
-        elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+        elseif ($OutputHtmlFilePath) {
+            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
         else {
             Write-Output $results

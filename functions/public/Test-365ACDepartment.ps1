@@ -8,13 +8,28 @@
 .PARAMETER Users
     Specifies an array of users to test. If not provided, the function retrieves all users in Microsoft 365 with their DisplayName and Department properties.
 
+.PARAMETER TenantID
+The ID of the tenant to connect to. Required if using app-only authentication.
+
+.PARAMETER ClientID
+The ID of the client to use for app-only authentication. Required if using app-only authentication.
+
+.PARAMETER CertificateThumbprint
+The thumbprint of the certificate to use for app-only authentication. Required if using app-only authentication.
+
+.PARAMETER AccessToken
+The access token to use for authentication. Required if using app-only authentication.
+
+.PARAMETER InteractiveLogin
+Specifies whether to use interactive login. If this switch is present, interactive login will be used. Otherwise, app-only authentication will be used.
+
 .PARAMETER ValidationExcelFilePath
     Specifies the path to an Excel file containing a list of valid departments. If provided, the function validates the users' departments against this list.
 
 .PARAMETER OutputExcelFilePath
     Specifies the path to an Excel file where the results will be exported. Requires the ImportExcel module.
 
-.PARAMETER HtmlFilePath
+.PARAMETER OutputHtmlFilePath
     Specifies the path to an HTML file where the results will be exported. Requires the Export-365ACResultToHtml function to be defined.
 
 .PARAMETER TestedProperty
@@ -25,7 +40,7 @@
     Retrieves all users in Microsoft 365 and exports the validation results to an Excel file.
 
 .EXAMPLE
-    Test-365ACDepartment -Users (Get-MgUser -All) -HtmlFilePath "C:\Results.html"
+    Test-365ACDepartment -Users (Get-MgUser -All) -OutputHtmlFilePath "C:\Results.html"
     Retrieves all users in Microsoft 365 and exports the validation results to an HTML file.
 
 .EXAMPLE
@@ -46,6 +61,21 @@ Function Test-365ACDepartment {
         [Parameter(ValueFromPipeline = $true)]
         [array]$Users = (get-mguser -all -Property DisplayName, Department | Select-Object DisplayName, Department),
         
+        [Parameter(Mandatory = $false)]
+        [string]$TenantID,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$ClientID,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$CertificateThumbprint,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$AccessToken,
+        
+        [Parameter(Mandatory = $false)]
+        [switch]$InteractiveLogin,
+        
         [ValidatePattern('\.xlsx$')]
         [string]$ValidationExcelFilePath,
         
@@ -53,7 +83,7 @@ Function Test-365ACDepartment {
         [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
-        [string]$HtmlFilePath,
+        [string]$OutputHtmlFilePath,
         
         [string]$TestedProperty = 'Has Department'
     )
@@ -66,6 +96,15 @@ Function Test-365ACDepartment {
             }
             # Import the Excel file to get valid department names
             $validDepartments = Import-Excel -Path $ValidationExcelFilePath | Select-Object -ExpandProperty Department -Unique
+        }
+
+        if ($InteractiveLogin) {
+            Write-PSFMessage "Using interactive login..." -Level Host
+            Connect-MgGraph -Scopes "User.Read.All", "AuditLog.read.All"  -NoWelcome
+        }
+        else {
+            Write-PSFMessage "Using app-only authentication..." -Level Host
+            Connect-MgGraph -ClientId $ClientID -TenantId $TenantID -CertificateThumbprint $CertificateThumbprint -Scopes "User.Read.All", "AuditLog.Read.All"
         }
         $results = @()
     }
@@ -90,8 +129,8 @@ Function Test-365ACDepartment {
         if ($OutputExcelFilePath) {
             Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
-        elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
+        elseif ($OutputHtmlFilePath) {
+            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
         else {
             Write-PSFMessage -Level Output -Message ($results | Out-String)

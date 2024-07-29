@@ -8,7 +8,7 @@ The Export-365ACResultToHtml function takes an array of results, along with othe
 .PARAMETER Results
 The array of results containing the test data. Each element in the array should be an object with properties representing the test results.
 
-.PARAMETER HtmlFilePath
+.PARAMETER OutputHtmlFilePath
 The path to the HTML file where the results will be exported.
 
 .PARAMETER TotalTests
@@ -35,13 +35,13 @@ $Results = @(
     }
 )
 
-$HtmlFilePath = '/path/to/results.html'
+$OutputHtmlFilePath = '/path/to/results.html'
 $TotalTests = $Results.Count
 $PassedTests = ($Results | Where-Object { $_.'Test Property' -eq 'Yes' }).Count
 $FailedTests = ($Results | Where-Object { $_.'Test Property' -eq 'No' }).Count
 $TestedProperty = 'Test Property'
 
-Export-365ACResultToHtml -Results $Results -HtmlFilePath $HtmlFilePath -TotalTests $TotalTests -PassedTests $PassedTests -FailedTests $FailedTests -TestedProperty $TestedProperty
+Export-365ACResultToHtml -Results $Results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $TotalTests -PassedTests $PassedTests -FailedTests $FailedTests -TestedProperty $TestedProperty
 
 .NOTES
 This function requires PowerShell version 5.1 or above.
@@ -50,7 +50,7 @@ This function requires PowerShell version 5.1 or above.
 function Export-365ACResultToHtml {
     param (
         [array]$Results,
-        [string]$HtmlFilePath,
+        [string]$OutputHtmlFilePath,
         [int]$TotalTests,
         [int]$PassedTests,
         [int]$FailedTests,
@@ -225,5 +225,5 @@ function Export-365ACResultToHtml {
 </body>
 </html>
 "@
-    Set-Content -Path $HtmlFilePath -Value $html
+    Set-Content -Path $OutputHtmlFilePath -Value $html
 }

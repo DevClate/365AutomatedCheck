@@ -8,13 +8,28 @@
 .PARAMETER Users
     Specifies an array of users to test. If not provided, the function retrieves all users in Microsoft 365 with their DisplayName and MobilePhone properties.
 
+.PARAMETER TenantID
+    The ID of the tenant to connect to. Required if using app-only authentication.
+
+.PARAMETER ClientID
+    The ID of the client to use for app-only authentication. Required if using app-only authentication.
+
+.PARAMETER CertificateThumbprint
+    The thumbprint of the certificate to use for app-only authentication. Required if using app-only authentication.
+
+.PARAMETER AccessToken
+    The access token to use for authentication. Required if using app-only authentication.
+
+.PARAMETER InteractiveLogin
+    Specifies whether to use interactive login. If this switch is present, interactive login will be used. Otherwise, app-only authentication will be used.
+
 .PARAMETER ValidationExcelFilePath
     Specifies the path to an Excel file containing a list of valid mobile phone numbers. If provided, the function validates the users' mobile phone numbers against this list.
 
 .PARAMETER OutputExcelFilePath
     Specifies the path to an Excel file where the results will be exported. Requires the ImportExcel module.
 
-.PARAMETER HtmlFilePath
+.PARAMETER OutputHtmlFilePath
     Specifies the path to an HTML file where the results will be exported. Requires the Export-365ACResultToHtml function to be defined.
 
 .PARAMETER TestedProperty
@@ -25,7 +40,7 @@
     Retrieves all users in Microsoft 365 and exports the validation results to an Excel file.
 
 .EXAMPLE
-    Test-365ACMobilePhone -Users (Get-MgUser -All) -HtmlFilePath "C:\Results.html"
+    Test-365ACMobilePhone -Users (Get-MgUser -All) -OutputHtmlFilePath "C:\Results.html"
     Retrieves all users in Microsoft 365 and exports the validation results to an HTML file.
 
 .EXAMPLE
@@ -45,6 +60,21 @@ function Test-365ACMobilePhone {
         [Parameter(ValueFromPipeline = $true)]
         [array]$Users = (Get-MgUser -All -Property DisplayName, MobilePhone | Select-Object DisplayName, MobilePhone),
         
+        [Parameter(Mandatory = $false)]
+        [string]$TenantID,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$ClientID,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$CertificateThumbprint,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$AccessToken,
+        
+        [Parameter(Mandatory = $false)]
+        [switch]$InteractiveLogin,
+
         [ValidatePattern('\.xlsx$')]
         [string]$ValidationExcelFilePath,
         
@@ -52,7 +82,7 @@ function Test-365ACMobilePhone {
         [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
-        [string]$HtmlFilePath,
+        [string]$OutputHtmlFilePath,
         
         [string]$TestedProperty = 'Has Valid Mobile Phone'
     )
@@ -66,6 +96,16 @@ function Test-365ACMobilePhone {
             # Import the Excel file to get valid mobile phone numbers
             $validMobilePhones = Import-Excel -Path $ValidationExcelFilePath | Select-Object -ExpandProperty MobilePhone -Unique
         }
+
+        if ($InteractiveLogin) {
+            Write-PSFMessage "Using interactive login..." -Level Host
+            Connect-MgGraph -Scopes "User.Read.All", "AuditLog.read.All"  -NoWelcome
+        }
+        else {
+            Write-PSFMessage "Using app-only authentication..." -Level Host
+            Connect-MgGraph -ClientId $ClientID -TenantId $TenantID -CertificateThumbprint $CertificateThumbprint -Scopes "User.Read.All", "AuditLog.Read.All"
+        }
+        
         $results = @()
     }
     PROCESS {
@@ -88,8 +128,8 @@ function Test-365ACMobilePhone {
         $failedTests = $totalTests - $passedTests
         if ($OutputExcelFilePath) {
             Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
-        } elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
+        } elseif ($OutputHtmlFilePath) {
+            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         } else {
             Write-PSFMessage -Level Output -Message ($results | Out-String)
         }

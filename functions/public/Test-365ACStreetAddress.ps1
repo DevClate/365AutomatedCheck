@@ -11,10 +11,25 @@
 .PARAMETER Users
     Specifies the list of users to test. If not provided, it retrieves all users from the Microsoft Graph API.
 
+.PARAMETER TenantID
+    The ID of the tenant to connect to. Required if using app-only authentication.
+
+.PARAMETER ClientID
+    The ID of the client to use for app-only authentication. Required if using app-only authentication.
+
+.PARAMETER CertificateThumbprint
+    The thumbprint of the certificate to use for app-only authentication. Required if using app-only authentication.
+
+.PARAMETER AccessToken
+    The access token to use for authentication. Required if using app-only authentication.
+
+.PARAMETER InteractiveLogin
+    Specifies whether to use interactive login. If this switch is present, interactive login will be used. Otherwise, app-only authentication will be used.
+
 .PARAMETER OutputExcelFilePath
     Specifies the file path to export the report as an Excel file. The file must have a .xlsx extension.
 
-.PARAMETER HtmlFilePath
+.PARAMETER OutputHtmlFilePath
     Specifies the file path to export the report as an HTML file. The file must have a .html extension.
 
 .PARAMETER TestedProperty
@@ -39,15 +54,39 @@ Function Test-365ACStreetAddress {
         [Parameter(ValueFromPipeline = $true)]
         [array]$Users = (Get-MgUser -All -Property DisplayName, StreetAddress | Select-Object DisplayName, StreetAddress),
         
+        [Parameter(Mandatory = $false)]
+        [string]$TenantID,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$ClientID,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$CertificateThumbprint,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$AccessToken,
+        
+        [Parameter(Mandatory = $false)]
+        [switch]$InteractiveLogin,
+
         [ValidatePattern('\.xlsx$')]
         [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
-        [string]$HtmlFilePath,
+        [string]$OutputHtmlFilePath,
         
         [string]$TestedProperty = 'Has Street Address'
     )
     BEGIN {
+        if ($InteractiveLogin) {
+            Write-PSFMessage "Using interactive login..." -Level Host
+            Connect-MgGraph -Scopes "User.Read.All", "AuditLog.read.All"  -NoWelcome
+        }
+        else {
+            Write-PSFMessage "Using app-only authentication..." -Level Host
+            Connect-MgGraph -ClientId $ClientID -TenantId $TenantID -CertificateThumbprint $CertificateThumbprint -Scopes "User.Read.All", "AuditLog.Read.All"
+        }
+        
         $results = @()
     }
     PROCESS {
@@ -67,8 +106,8 @@ Function Test-365ACStreetAddress {
         if ($OutputExcelFilePath) {
             Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
-        elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+        elseif ($OutputHtmlFilePath) {
+            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
         }
         else {
             Write-Output $results

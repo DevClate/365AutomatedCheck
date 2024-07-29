@@ -8,13 +8,28 @@
 .PARAMETER Users
     Specifies an array of users to test. If not provided, the function retrieves all users in Microsoft 365.
 
+.PARAMETER TenantID
+    The ID of the tenant to connect to. Required if using app-only authentication.
+
+.PARAMETER ClientID
+    The ID of the client to use for app-only authentication. Required if using app-only authentication.
+
+.PARAMETER CertificateThumbprint
+    The thumbprint of the certificate to use for app-only authentication. Required if using app-only authentication.
+
+.PARAMETER AccessToken
+    The access token to use for authentication. Required if using app-only authentication.
+
+.PARAMETER InteractiveLogin
+    Specifies whether to use interactive login. If this switch is present, interactive login will be used. Otherwise, app-only authentication will be used.
+
 .PARAMETER ValidationExcelFilePath
     Specifies the path to an Excel file containing a list of valid fax numbers. If provided, the function validates the users' fax numbers against this list.
 
 .PARAMETER OutputExcelFilePath
     Specifies the path to export the results to an Excel file. If specified, the function exports the results using the Export-365ACResultToExcel function.
 
-.PARAMETER HtmlFilePath
+.PARAMETER OutputHtmlFilePath
     Specifies the path to export the results to an HTML file. If specified, the function exports the results using the Export-365ACResultToHtml function.
 
 .PARAMETER TestedProperty
@@ -25,7 +40,7 @@
     Tests all users for a fax number and exports the results to an Excel file.
 
 .EXAMPLE
-    Test-365ACFaxNumber -Users $users -HtmlFilePath "C:\Results.html"
+    Test-365ACFaxNumber -Users $users -OutputHtmlFilePath "C:\Results.html"
     Tests the specified users for a fax number and exports the results to an HTML file.
 
 .NOTES
@@ -42,6 +57,21 @@ Function Test-365ACFaxNumber {
         [Parameter(ValueFromPipeline = $true)]
         [array]$Users = (get-mguser -all -Property DisplayName, FaxNumber | Select-Object DisplayName, FaxNumber),
         
+        [Parameter(Mandatory = $false)]
+        [string]$TenantID,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$ClientID,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$CertificateThumbprint,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$AccessToken,
+        
+        [Parameter(Mandatory = $false)]
+        [switch]$InteractiveLogin,
+
         [ValidatePattern('\.xlsx$')]
         [string]$ValidationExcelFilePath,
         
@@ -49,7 +79,7 @@ Function Test-365ACFaxNumber {
         [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
-        [string]$HtmlFilePath,
+        [string]$OutputHtmlFilePath,
         
         [string]$TestedProperty = 'Has Fax Number'
     )
@@ -62,6 +92,15 @@ Function Test-365ACFaxNumber {
             }
             # Import the Excel file to get valid fax numbers
             $validFaxNumbers = Import-Excel -Path $ValidationExcelFilePath | Select-Object -ExpandProperty FaxNumber -Unique
+        }
+
+        if ($InteractiveLogin) {
+            Write-PSFMessage "Using interactive login..." -Level Host
+            Connect-MgGraph -Scopes "User.Read.All", "AuditLog.read.All"  -NoWelcome
+        }
+        else {
+            Write-PSFMessage "Using app-only authentication..." -Level Host
+            Connect-MgGraph -ClientId $ClientID -TenantId $TenantID -CertificateThumbprint $CertificateThumbprint -Scopes "User.Read.All", "AuditLog.Read.All"
         }
         $results = @()
     }
@@ -86,8 +125,8 @@ Function Test-365ACFaxNumber {
         if ($OutputExcelFilePath) {
             Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
-        elseif ($HtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -HtmlFilePath $HtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
+        elseif ($OutputHtmlFilePath) {
+            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
         }
         else {
             Write-PSFMessage -Level Output -Message ($results | Out-String)
