@@ -1,4 +1,14 @@
+### 0.0.11
 
+**Brief Summary**
+
+Changed htmlfilepath to outputhtmlfilepath to follow excel output syntax. Also added Interactive and app-only connections
+
+**Updated Features**
+
+* Changed HtmlFilePath to OutputHtmlFilePath to match Excels syntax
+* Added Interactive and App-only Connections
+* Updated help to correspond with these changes
 
 ### 0.0.10
 
