@@ -43,10 +43,7 @@ function Set-365ACDefaultOutputPath {
     }
     else {
         # Check if the provided Path is an absolute path
-        if ([System.IO.Path]::IsPathRooted($Path)) {
-            # If it's an absolute path, use it directly
-        }
-        else {
+        if (-not [System.IO.Path]::IsPathRooted($Path)) {
             # If it's not an absolute path, append it to the $reportsPath
             $Path = Join-Path -Path $reportsPath -ChildPath $Path
         }

@@ -99,7 +99,8 @@ FunctionsToExport = @(
     'Test-365ACAccountEnabled',
     'Test-365ACEmployeeID',
     'Test-365ACAddressBook',
-    'Test-365ACLastLogin'
+    'Test-365ACLastLogin',
+    'Export-365ACResultToMarkdown'
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.

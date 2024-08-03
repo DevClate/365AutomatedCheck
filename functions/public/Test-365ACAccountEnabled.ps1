@@ -77,6 +77,9 @@ Function Test-365ACAccountEnabled {
         
         [ValidatePattern('\.html$')]
         [string]$OutputHtmlFilePath,
+
+        [ValidatePattern('\.md$')]
+        [string]$OutputMarkdownFilePath,
         
         [string]$TestedProperty = 'Is Account Enabled'
     )
@@ -107,12 +110,18 @@ Function Test-365ACAccountEnabled {
         $failedTests = $totalTests - $passedTests
         if ($OutputExcelFilePath) {
             Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "Excel report saved to $OutputExcelFilePath" -Level Host
         }
         elseif ($OutputHtmlFilePath) {
             Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "HTML report saved to $OutputHtmlFilePath" -Level Host
+        }
+        elseif ($OutputMarkdownFilePath) {
+            Export-365ACResultToMarkdown -Results $results -OutputMarkdownFilePath $OutputMarkdownFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "Markdown report saved to $OutputMarkdownFilePath" -Level Host
         }
         else {
-            Write-Output $results
+            Write-PSFMessage -Level Output -Message ($results | Out-String)
         }
     }
 }

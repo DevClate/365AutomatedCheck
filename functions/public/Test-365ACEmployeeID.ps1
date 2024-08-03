@@ -29,6 +29,9 @@ The file path where the Excel report will be saved. The file must have an .xlsx 
 .PARAMETER OutputHtmlFilePath
 The file path where the HTML report will be saved. The file must have an .html extension.
 
+.PARAMETER OutputMarkdownFilePath
+The file path where the Markdown report will be saved. The file must have an .md extension.
+
 .PARAMETER TestedProperty
 The property being tested. This is set to 'Has Employee ID' by default.
 
@@ -71,17 +74,19 @@ Function Test-365ACEmployeeID {
         
         [Parameter(Mandatory = $false)]
         [switch]$InteractiveLogin,
-
+        
         [ValidatePattern('\.xlsx$')]
         [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
         [string]$OutputHtmlFilePath,
         
+        [ValidatePattern('\.md$')]
+        [string]$OutputMarkdownFilePath,
+        
         [string]$TestedProperty = 'Has Employee ID'
     )
     BEGIN {
-
         if ($InteractiveLogin) {
             Write-PSFMessage "Using interactive login..." -Level Host
             Connect-MgGraph -Scopes "User.Read.All", "AuditLog.read.All"  -NoWelcome
@@ -108,12 +113,18 @@ Function Test-365ACEmployeeID {
         $failedTests = $totalTests - $passedTests
         if ($OutputExcelFilePath) {
             Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "Excel report saved to $OutputExcelFilePath" -Level Host
         }
         elseif ($OutputHtmlFilePath) {
             Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "HTML report saved to $OutputHtmlFilePath" -Level Host
+        }
+        elseif ($OutputMarkdownFilePath) {
+            Export-365ACResultToMarkdown -Results $results -OutputMarkdownFilePath $OutputMarkdownFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "Markdown report saved to $OutputMarkdownFilePath" -Level Host
         }
         else {
-            Write-Output $results
+            Write-PSFMessage -Level Output -Message ($results | Out-String)
         }
     }
 }

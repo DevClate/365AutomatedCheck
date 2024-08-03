@@ -1,4 +1,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+   <xsl:param name="includeButtons" select="'true'"/>
+  <!-- Template to exclude comments -->
+  <xsl:template match="comment()"/>
   <xsl:template match="/">
     <html>
       <head>
@@ -98,7 +101,6 @@
               } else {
                 row.style.display = 'none';
               }
-
               // Add nowrap class to failed messages when filter is 'Passed'
               var failedMessageCell = row.querySelector('.failure-message');
               if (failedMessageCell) {
@@ -137,11 +139,16 @@
               <p>Not tested</p>
             </div>
           </div>
-          <div class="filter-buttons">
-            <button onclick="filterTests('all')">All</button>
-            <button onclick="filterTests('Success')">Passed</button>
-            <button onclick="filterTests('Failure')">Failed</button>
-          </div>
+          <!-- Buttons Start -->
+          <xsl:if test="$includeButtons = 'true'">
+            <div class="filter-buttons">
+              <button onclick="filterTests('all')">All</button>
+              <button onclick="filterTests('Success')">Passed</button>
+              <button onclick="filterTests('Failure')">Failed</button>
+              <button onclick="filterTests('NotTested')">Not Tested</button>
+            </div>
+          </xsl:if>
+          <!-- Buttons End -->
           <table>
             <tr>
               <th>Test Name</th>

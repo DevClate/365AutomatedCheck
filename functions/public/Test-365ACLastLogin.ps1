@@ -1,44 +1,44 @@
 <#
 .SYNOPSIS
-    Tests the last login activity of users in Microsoft 365.
+Tests the last login activity of users in Microsoft 365.
 
 .DESCRIPTION
-    The Test-365ACLastLogin function tests the last login activity of users in Microsoft 365. It retrieves the required properties of users, calculates the number of inactive days, and determines if a user has logged in within a specified number of days. The function then generates a report of the test results.
+The Test-365ACLastLogin function tests the last login activity of users in Microsoft 365. It retrieves the required properties of users, calculates the number of inactive days, and determines if a user has logged in within a specified number of days. The function then generates a report of the test results.
 
 .PARAMETER TenantID
-    The ID of the tenant to connect to. This parameter is optional.
+The ID of the tenant to connect to. This parameter is optional.
 
 .PARAMETER ClientID
-    The ID of the client to use for app-only authentication. This parameter is optional.
+The ID of the client to use for app-only authentication. This parameter is optional.
 
 .PARAMETER CertificateThumbprint
-    The thumbprint of the certificate to use for app-only authentication. This parameter is optional.
+The thumbprint of the certificate to use for app-only authentication. This parameter is optional.
 
 .PARAMETER AccessToken
-    The access token to use for authentication. This parameter is optional.
+The access token to use for authentication. This parameter is optional.
 
 .PARAMETER InteractiveLogin
-    Specifies whether to use interactive login. If this switch is present, interactive login will be used. Otherwise, app-only authentication will be used.
+Specifies whether to use interactive login. If this switch is present, interactive login will be used. Otherwise, app-only authentication will be used.
 
 .PARAMETER Days
-    The number of days to consider a user as inactive. The default value is 30.
+The number of days to consider a user as inactive. The default value is 30.
 
 .PARAMETER TestedProperty
-    The name of the tested property. The default value is "Has Logged In Last <Days> Days".
+The name of the tested property. The default value is "Has Logged In Last <Days> Days".
 
 .PARAMETER OutputExcelFilePath
-    The path to the output Excel file. The file should have a .xlsx extension. This parameter is optional.
+The path to the output Excel file. The file should have a .xlsx extension. This parameter is optional.
 
 .PARAMETER HtmlFilePath
-    The path to the output HTML file. The file should have a .html extension. This parameter is optional.
+The path to the output HTML file. The file should have a .html extension. This parameter is optional.
 
 .EXAMPLE
-    Test-365ACLastLogin -TenantID "contoso.onmicrosoft.com" -ClientID "12345678-1234-1234-1234-1234567890ab" -CertificateThumbprint "AB12AB34AB56AB78AB90AB12AB34AB56AB78AB90" -Days 60 -OutputExcelFilePath "C:\Reports\LastLoginReport.xlsx"
-    Tests the last login activity of users in the "contoso.onmicrosoft.com" tenant using app-only authentication with the specified client ID and certificate thumbprint. Users who have not logged in within the last 60 days will be considered inactive. The test results will be exported to an Excel file located at "C:\Reports\LastLoginReport.xlsx".
+Test-365ACLastLogin -TenantID "contoso.onmicrosoft.com" -ClientID "12345678-1234-1234-1234-1234567890ab" -CertificateThumbprint "AB12AB34AB56AB78AB90AB12AB34AB56AB78AB90" -Days 60 -OutputExcelFilePath "C:\Reports\LastLoginReport.xlsx"
+Tests the last login activity of users in the "contoso.onmicrosoft.com" tenant using app-only authentication with the specified client ID and certificate thumbprint. Users who have not logged in within the last 60 days will be considered inactive. The test results will be exported to an Excel file located at "C:\Reports\LastLoginReport.xlsx".
 
 .EXAMPLE
-    Test-365ACLastLogin -InteractiveLogin -Days 90 -OutputHtmlFilePath "C:\Reports\LastLoginReport.html"
-    Tests the last login activity of users using interactive login. Users who have not logged in within the last 90 days will be considered inactive. The test results will be exported to an HTML file located at "C:\Reports\LastLoginReport.html".
+Test-365ACLastLogin -InteractiveLogin -Days 90 -OutputHtmlFilePath "C:\Reports\LastLoginReport.html"
+Tests the last login activity of users using interactive login. Users who have not logged in within the last 90 days will be considered inactive. The test results will be exported to an HTML file located at "C:\Reports\LastLoginReport.html".
 #>
 
 Function Test-365ACLastLogin {
@@ -68,7 +68,10 @@ Function Test-365ACLastLogin {
         [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
-        [string]$OutputHtmlFilePath
+        [string]$OutputHtmlFilePath,
+
+        [ValidatePattern('\.md$')]
+        [string]$OutputMarkdownFilePath
     )
     BEGIN {
         if ($InteractiveLogin) {
@@ -119,10 +122,17 @@ Function Test-365ACLastLogin {
         $PassedTests = ($results | Where-Object { $_.$columnName -eq $true }).Count
         $FailedTests = $TotalTests - $PassedTests
         if ($OutputExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $TotalTests -PassedTests $PassedTests -FailedTests $FailedTests -TestedProperty $columnName
+            Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "Excel report saved to $OutputExcelFilePath" -Level Host
         }
         elseif ($OutputHtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $TotalTests -PassedTests $PassedTests -FailedTests $FailedTests -TestedProperty $columnName
+            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "HTML report saved to $OutputHtmlFilePath" -Level Host
+        }
+        elseif ($OutputMarkdownFilePath) {
+            Export-365ACResultToMarkdown -Results $results -OutputMarkdownFilePath $OutputMarkdownFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "Markdown report saved to $OutputMarkdownFilePath" -Level Host
+            <# Action when this condition is true #>
         }
         else {
             Write-PSFMessage -Level Output -Message ($results | Out-String)

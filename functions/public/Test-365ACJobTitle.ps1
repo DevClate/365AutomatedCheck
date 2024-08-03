@@ -1,61 +1,67 @@
 <#
 .SYNOPSIS
-    Tests if users have a job title assigned and exports the results.
+Tests if users have a job title assigned and exports the results.
 
 .DESCRIPTION
-    The Test-365ACJobTitle function checks if users in Microsoft 365 have a job title assigned. It can validate job titles against a list of valid titles if provided. The results can be exported to Excel, HTML, or output to the console.
+The Test-365ACJobTitle function checks if users in Microsoft 365 have a job title assigned. It can validate job titles against a list of valid titles if provided. The results can be exported to Excel, HTML, Markdown, or output to the console.
 
 .PARAMETER Users
-    Specifies an array of users to test. If not provided, the function tests all users in Microsoft 365.
+Specifies an array of users to test. If not provided, the function tests all users in Microsoft 365.
 
 .PARAMETER TenantID
-    The ID of the tenant to connect to. Required if using app-only authentication.
+The ID of the tenant to connect to. Required if using app-only authentication.
 
 .PARAMETER ClientID
-    The ID of the client to use for app-only authentication. Required if using app-only authentication.
+The ID of the client to use for app-only authentication. Required if using app-only authentication.
 
 .PARAMETER CertificateThumbprint
-    The thumbprint of the certificate to use for app-only authentication. Required if using app-only authentication.
+The thumbprint of the certificate to use for app-only authentication. Required if using app-only authentication.
 
 .PARAMETER AccessToken
-    The access token to use for authentication. Required if using app-only authentication.
+The access token to use for authentication. Required if using app-only authentication.
 
 .PARAMETER InteractiveLogin
-    Specifies whether to use interactive login. If this switch is present, interactive login will be used. Otherwise, app-only authentication will be used.
+Specifies whether to use interactive login. If this switch is present, interactive login will be used. Otherwise, app-only authentication will be used.
 
 .PARAMETER ValidationExcelFilePath
-    Specifies the path to an Excel file containing a list of valid job titles. If provided, the function validates each user's job title against this list.
+Specifies the path to an Excel file containing a list of valid job titles. If provided, the function validates each user's job title against this list.
 
 .PARAMETER OutputExcelFilePath
-    Specifies the path to export the results to an Excel file. If specified, the function exports the results using the Export-365ACResultToExcel function.
+Specifies the path to export the results to an Excel file. If specified, the function exports the results using the Export-365ACResultToExcel function.
 
 .PARAMETER OutputHtmlFilePath
-    Specifies the path to export the results to an HTML file. If specified, the function exports the results using the Export-365ACResultToHtml function.
+Specifies the path to export the results to an HTML file. If specified, the function exports the results using the Export-365ACResultToHtml function.
+
+.PARAMETER OutputMarkdownFilePath
+Specifies the path to export the results to a Markdown file. If specified, the function exports the results using the Export-365ACResultToMarkdown function.
 
 .PARAMETER TestedProperty
-    Specifies the property being tested. Defaults to 'Has Job Title'.
+Specifies the property being tested. Defaults to 'Has Job Title'.
 
 .EXAMPLE
-    Test-365ACJobTitle -Users (Get-MgUser -All) -OutputExcelFilePath "C:\Results.xlsx"
-    Tests all users for a job title and exports the results to an Excel file.
+Test-365ACJobTitle -Users (Get-MgUser -All) -OutputExcelFilePath "C:\Results.xlsx"
+Tests all users for a job title and exports the results to an Excel file.
 
 .EXAMPLE
-    Test-365ACJobTitle -Users $users -OutputHtmlFilePath "C:\Results.html"
-    Tests the specified users for a job title and exports the results to an HTML file.
+Test-365ACJobTitle -Users $users -OutputHtmlFilePath "C:\Results.html"
+Tests the specified users for a job title and exports the results to an HTML file.
+
+.EXAMPLE
+Test-365ACJobTitle -Users $users -OutputMarkdownFilePath "C:\Results.md"
+Tests the specified users for a job title and exports the results to a Markdown file.
 
 .NOTES
-    - Requires the ImportExcel module for exporting results to Excel. If not installed, an error will be displayed.
-    - The Export-365ACResultToExcel and Export-365ACResultToHtml functions must be defined for exporting results.
+- Requires the ImportExcel module for exporting results to Excel. If not installed, an error will be displayed.
+- The Export-365ACResultToExcel, Export-365ACResultToHtml, and Export-365ACResultToMarkdown functions must be defined for exporting results.
 
 .LINK
-    https://github.com/DevClate/365AutomatedCheck
+https://github.com/DevClate/365AutomatedCheck
 #>
 function Test-365ACJobTitle {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline=$true)]
         [array]$Users = (Get-MgUser -All -Property DisplayName, JobTitle),
-
         [Parameter(Mandatory = $false)]
         [string]$TenantID,
         
@@ -80,6 +86,9 @@ function Test-365ACJobTitle {
         [ValidatePattern('\.html$')]
         [string]$OutputHtmlFilePath,
         
+        [ValidatePattern('\.md$')]
+        [string]$OutputMarkdownFilePath,
+        
         [string]$TestedProperty = 'Has Job Title'
     )
     BEGIN {
@@ -92,7 +101,6 @@ function Test-365ACJobTitle {
             # Import the Excel file to get valid job titles
             $validJobTitles = Import-Excel -Path $ValidationExcelFilePath | Select-Object -ExpandProperty Title -Unique
         }
-
         if ($InteractiveLogin) {
             Write-PSFMessage "Using interactive login..." -Level Host
             Connect-MgGraph -Scopes "User.Read.All", "AuditLog.read.All"  -NoWelcome
@@ -104,28 +112,32 @@ function Test-365ACJobTitle {
         $results = @()
     }
     PROCESS {
-        $columnName = $ValidationExcelFilePath ? 'Has Valid Job Title' : 'Has Job Title'
         foreach ($user in $Users) {
             $hasJobTitle = [bool]($user.JobTitle)
-            if ($ValidationExcelFilePath) {
-                $hasJobTitle = $user.JobTitle -in $validJobTitles
-            }
             $result = [PSCustomObject]@{
                 'User Display Name' = $user.DisplayName
-                $columnName         = $hasJobTitle
+                $TestedProperty     = $hasJobTitle
             }
             $results += $result
         }
     }
     END {
         $totalTests = $results.Count
-        $passedTests = ($results | Where-Object { $_.$columnName }).Count
+        $passedTests = ($results | Where-Object { $_.$TestedProperty }).Count
         $failedTests = $totalTests - $passedTests
         if ($OutputExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
-        } elseif ($OutputHtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
-        } else {
+            Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "Excel report saved to $OutputExcelFilePath" -Level Host
+        }
+        elseif ($OutputHtmlFilePath) {
+            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "HTML report saved to $OutputHtmlFilePath" -Level Host
+        }
+        elseif ($OutputMarkdownFilePath) {
+            Export-365ACResultToMarkdown -Results $results -OutputMarkdownFilePath $OutputMarkdownFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "Markdown report saved to $OutputMarkdownFilePath" -Level Host
+        }
+        else {
             Write-PSFMessage -Level Output -Message ($results | Out-String)
         }
     }

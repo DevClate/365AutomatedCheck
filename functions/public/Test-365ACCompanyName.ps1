@@ -1,54 +1,50 @@
 <#
 .SYNOPSIS
-    Tests whether users in Microsoft 365 have a company name assigned and optionally validates against a list of valid company names.
+Tests if users have a company name property and generates test results.
 
 .DESCRIPTION
-    The Test-365ACCompanyName function checks if users in Microsoft 365 have a company name assigned to their profile. It can also validate these company names against a provided list of valid company names. The results of this test can be exported to an Excel file, an HTML file, or displayed in the console.
+The Test-365ACCompanyName function tests if users have a company name property and generates test results. It takes an array of users as input and checks if each user has a company name property. The test results are stored in an array of custom objects, which include the user's display name and the result of the test.
 
 .PARAMETER Users
-    Specifies the users to be tested. If not specified, the function will test all users in the organization by retrieving their DisplayName and CompanyName properties.
+Specifies the array of users to test. Each user should have a DisplayName and CompanyName property.
 
 .PARAMETER TenantID
-    The ID of the tenant to connect to. Required if using app-only authentication.
+The ID of the tenant to connect to. Required if using app-only authentication.
 
 .PARAMETER ClientID
-    The ID of the client to use for app-only authentication. Required if using app-only authentication.
+The ID of the client to use for app-only authentication. Required if using app-only authentication.
 
 .PARAMETER CertificateThumbprint
-    The thumbprint of the certificate to use for app-only authentication. Required if using app-only authentication.
+The thumbprint of the certificate to use for app-only authentication. Required if using app-only authentication.
 
 .PARAMETER AccessToken
-    The access token to use for authentication. Required if using app-only authentication.
+The access token to use for authentication. Required if using app-only authentication.
 
 .PARAMETER InteractiveLogin
-    Specifies whether to use interactive login. If this switch is present, interactive login will be used. Otherwise, app-only authentication will be used.
-
-.PARAMETER ValidationExcelFilePath
-    Specifies the path to an Excel file containing a list of valid company names. If specified, the function will validate the company names of the users against this list.
+Specifies whether to use interactive login. If this switch is present, interactive login will be used. Otherwise, app-only authentication will be used.
 
 .PARAMETER OutputExcelFilePath
-    Specifies the path to save the test results as an Excel file. If not specified, the test results will be displayed in the console. The path must end with '.xlsx'.
+Specifies the path to the output Excel file. If provided, the test results will be exported to an Excel file.
 
 .PARAMETER OutputHtmlFilePath
-    Specifies the path to save the test results as an HTML file. If not specified, the test results will be displayed in the console. The path must end with '.html'.
+Specifies the path to the output HTML file. If provided, the test results will be exported to an HTML file.
+
+.PARAMETER OutputMarkdownFilePath
+Specifies the path to the output Markdown file. If provided, the test results will be exported to a Markdown file.
 
 .PARAMETER TestedProperty
-    Specifies the name of the tested property. This will be used as the column name in the test results. Defaults to 'Has Company Name' but changes to 'Has Valid Company Name' if a validation list is provided.
+Specifies the name of the tested property. Default value is 'Has Company Name'.
+
+.INPUTS
+An array of users with DisplayName and CompanyName properties.
+
+.OUTPUTS
+If OutputExcelFilePath or OutputHtmlFilePath is not provided, the function outputs an array of custom objects with the user's display name and the result of the test.
 
 .EXAMPLE
-    Test-365ACCompanyName -Users (Get-MgUser -All) -ValidationExcelFilePath "C:\Validation.xlsx" -OutputExcelFilePath "C:\Results.xlsx"
-    Tests all users in the organization, validates their company names against the list of valid company names in "Validation.xlsx", and saves the test results to "Results.xlsx".
-
-.EXAMPLE
-    Test-365ACCompanyName -Users (Get-MgUser -All) -OutputHtmlFilePath "C:\Results.html"
-    Tests all users in the organization and saves the test results as an HTML file named "Results.html".
-
-.NOTES
-    Requires the ImportExcel module for exporting results to Excel. If not installed, an error will be displayed.
-    The Export-365ACResultToExcel and Export-365ACResultToHtml functions must be defined for exporting results to Excel or HTML, respectively.
-
-.LINK
-    https://github.com/DevClate/365AutomatedCheck
+$users = Get-MgUser -All -Property DisplayName, CompanyName | Select-Object DisplayName, CompanyName
+Test-365ACCompanyName -Users $users -OutputExcelFilePath 'C:\TestResults.xlsx'
+This example tests if the users have a company name property and exports the test results to an Excel file.
 #>
 Function Test-365ACCompanyName {
     [CmdletBinding()]
@@ -71,30 +67,19 @@ Function Test-365ACCompanyName {
         
         [Parameter(Mandatory = $false)]
         [switch]$InteractiveLogin,
-
-        [ValidatePattern('\.xlsx$')]
-        [string]$ValidationExcelFilePath,
         
         [ValidatePattern('\.xlsx$')]
         [string]$OutputExcelFilePath,
         
         [ValidatePattern('\.html$')]
         [string]$OutputHtmlFilePath,
-
+        
+        [ValidatePattern('\.md$')]
+        [string]$OutputMarkdownFilePath,
+        
         [string]$TestedProperty = 'Has Company Name'
     )
     BEGIN {
-        
-        $validCompanyNames = @()
-        if ($ValidationExcelFilePath) {
-            if (!(Get-Command Import-Excel -ErrorAction SilentlyContinue)) {
-                Stop-PSFFunction -Message "Import-Excel cmdlet not found. Please install the ImportExcel module." -ErrorRecord $_ -Tag 'MissingModule'
-                return@
-            }
-            # Import the Excel file to get valid company names
-            $validCompanyNames = Import-Excel -Path $ValidationExcelFilePath | Select-Object -ExpandProperty CompanyName -Unique
-        }
-
         if ($InteractiveLogin) {
             Write-PSFMessage "Using interactive login..." -Level Host
             Connect-MgGraph -Scopes "User.Read.All", "AuditLog.read.All"  -NoWelcome
@@ -106,28 +91,30 @@ Function Test-365ACCompanyName {
         $results = @()
     }
     PROCESS {
-        $columnName = $ValidationExcelFilePath ? 'Has Valid Company Name' : 'Has Company Name'
         foreach ($user in $Users) {
             $hasCompanyName = [bool]($user.CompanyName)
-            if ($ValidationExcelFilePath) {
-                $hasCompanyName = $user.CompanyName -in $validCompanyNames
-            }
             $result = [PSCustomObject]@{
                 'User Display Name' = $user.DisplayName
-                $columnName         = $hasCompanyName
+                $TestedProperty     = $hasCompanyName
             }
             $results += $result
         }
     }
     END {
         $totalTests = $results.Count
-        $passedTests = ($results | Where-Object { $_.$columnName }).Count
+        $passedTests = ($results | Where-Object { $_.$TestedProperty }).Count
         $failedTests = $totalTests - $passedTests
         if ($OutputExcelFilePath) {
-            Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
+            Export-365ACResultToExcel -Results $results -OutputExcelFilePath $OutputExcelFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "Excel report saved to $OutputExcelFilePath" -Level Host
         }
         elseif ($OutputHtmlFilePath) {
-            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $columnName
+            Export-365ACResultToHtml -Results $results -OutputHtmlFilePath $OutputHtmlFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "HTML report saved to $OutputHtmlFilePath" -Level Host
+        }
+        elseif ($OutputMarkdownFilePath) {
+            Export-365ACResultToMarkdown -Results $results -OutputMarkdownFilePath $OutputMarkdownFilePath -TotalTests $totalTests -PassedTests $passedTests -FailedTests $failedTests -TestedProperty $TestedProperty
+            Write-PSFMessage "Markdown report saved to $OutputMarkdownFilePath" -Level Host
         }
         else {
             Write-PSFMessage -Level Output -Message ($results | Out-String)

@@ -65,6 +65,9 @@ function Invoke-365AutomatedCheck {
         [ValidatePattern(".*\.html$")]
         [string] $OutputHtmlPath,
         
+        [ValidatePattern(".*\.md$")]
+        [string] $OutputMarkdownPath,
+        
         [bool] $PassThru = $false,
         
         [string[]] $Tag,
@@ -72,25 +75,28 @@ function Invoke-365AutomatedCheck {
         [string[]] $ExcludeTag,
         
         [string] $ExcelFilePath,
-
         [bool] $NoExcel = $false
     )
-
     #Requires -Module Pester, ImportExcel
-
     if (-not $XmlPath -and $OutputHtmlPath) {
         # Change the extension of $OutputHtmlPath to .xml and assign it to $XmlPath
         $XmlPath = [System.IO.Path]::ChangeExtension($OutputHtmlPath, '.xml')
     }
-
+    elseif (-not $XmlPath -and $OutputMarkdownPath) {
+        # Change the extension of $OutputMarkdownPath to .xml and assign it to $XmlPath
+        $XmlPath = [System.IO.Path]::ChangeExtension($OutputMarkdownPath, '.xml')
+    }
     $XmlPath = Set-365ACDefaultOutputPath -Path $XmlPath -DefaultPath '365ACReport.xml'
     Write-PSFMessage -Level Host -Message "Using XML Path: $XmlPath"
-
-    $OutputHtmlPath = Set-365ACDefaultOutputPath -Path $OutputHtmlPath -DefaultPath '365ACReport.html'
-    Write-PSFMessage -Level Host -Message "Using HTML Output Path: $OutputHtmlPath"
-
+    if ($OutputHtmlPath) {
+        $OutputHtmlPath = Set-365ACDefaultOutputPath -Path $OutputHtmlPath -DefaultPath '365ACReport.html'
+        Write-PSFMessage -Level Host -Message "Using HTML Output Path: $OutputHtmlPath"
+    }
+    if ($OutputMarkdownPath) {
+        $OutputMarkdownPath = Set-365ACDefaultOutputPath -Path $OutputMarkdownPath -DefaultPath '365ACReport.md'
+        Write-PSFMessage -Level Host -Message "Using Markdown Output Path: $OutputMarkdownPath"
+    }
     $pesterConfig = Get-365ACPesterConfiguration -Path $Path -Tag $Tag -ExcludeTag $ExcludeTag -XmlPath $XmlPath -PesterConfiguration $PesterConfiguration -Verbosity $Verbosity -PassThru $PassThru -NoExcel $NoExcel
-
     # Conditionally set the ExcelFilePath environment variable
     if (-not $NoExcel) {
         $env:ExcelFilePath = $ExcelFilePath
@@ -99,10 +105,14 @@ function Invoke-365AutomatedCheck {
     else {
         $env:NoExcel = $true
     }
-
     Invoke-Pester -Configuration $pesterConfig
-
     Start-Sleep -Seconds 2
-
-    Convert-365ACXmlToHtml -XmlPath $XmlPath -XsltPath $XsltPath -OutputHtmlPath $OutputHtmlPath
+    
+    if (-not $OutputMarkdownPath) {
+        Convert-365ACXmlToHtml -XmlPath $XmlPath -XsltPath $XsltPath -OutputHtmlPath $OutputHtmlPath
+    }
+    
+    if ($OutputMarkdownPath) {
+        Convert-365ACXmlToMarkdown -XmlPath $XmlPath -OutputMarkdownPath $OutputMarkdownPath -XsltPath $XsltPath -IncludeButtons $false
+    }
 }
