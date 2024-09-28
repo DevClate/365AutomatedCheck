@@ -238,7 +238,7 @@ Describe "Validating User Fields" -Tag "Entra", "Users", "All" {
         }
     }
 
-    Context "UPN Formatting" -Tag "Custom" -ForEach @( $Users ) {
+    Context "UPN Formatting" -Tag "Custom", "UPN" -ForEach @( $Users ) {
         It "User $($_.DisplayName) UPN should have a first initial last name all lower case" {
             $firstName = $_.DisplayName
             $lastName = $_.Surname
